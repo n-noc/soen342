@@ -3,4 +3,5 @@
 ## Team members
 
 - Rita Kardachian 40283698  (team leader)
-- Nayla Nocera 40283927  
+- Nayla Nocera 40283927
+- Ava Samimi
