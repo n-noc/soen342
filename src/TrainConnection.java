@@ -15,7 +15,7 @@ public class TrainConnection {
     public Duration tripDuration;
 
 
-    public TrainConnection(String routeID, String departureCity, String arrivalCity, LocalTime departureTime, LocalTime arrivalTime, TrainType traintype, Set<DayOfWeek> daysOfOperation, int firstClassRate, int secondClassRate, LocalTime tripDuration) {
+    public TrainConnection(String routeID, String departureCity, String arrivalCity, LocalTime departureTime, LocalTime arrivalTime, TrainType traintype, Set<DayOfWeek> daysOfOperation, int firstClassRate, int secondClassRate) {
         this.routeID = routeID;
         this.departureCity = departureCity;
         this.arrivalCity = arrivalCity;
