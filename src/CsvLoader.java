@@ -41,7 +41,16 @@ public class CsvLoader {
         String arrivalCity = get(cells, idx, "Arrival City");
 
         LocalTime departureTime = parseTime(get(cells, idx, "Departure Time"));
-        LocalTime arrivalTime = parseTime(get(cells, idx, "Arrival Time"));
+        String arrivalRaw = get(cells, idx, "Arrival Time");
+        int arrivalDayOffset = arrivalRaw != null && arrivalRaw.contains("(+1d)") ? 1 : 0;
+
+        String arrivalClean = arrivalRaw;
+        if (arrivalClean != null) {
+            int paren = arrivalClean.indexOf('('); // strips " (+1d)" or anything after '('
+            if (paren >= 0) arrivalClean = arrivalClean.substring(0, paren).trim();
+        }
+        LocalTime arrivalTime = parseTime(arrivalClean);
+
 
         //TrainType uses its own method that recognizes strings and matches them with their enum
         TrainType trainType = TrainType.fromString(get(cells, idx, "Train Type"));
@@ -60,7 +69,8 @@ public class CsvLoader {
                 trainType,
                 days,
                 firstClass,
-                secondClass
+                secondClass,
+                arrivalDayOffset
         );
     }
 

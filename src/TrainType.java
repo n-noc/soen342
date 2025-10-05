@@ -6,6 +6,18 @@ public enum TrainType {
     TGV("TGV"),
     REGIONAL("Regional"),
     EUROCITY("EuroCity"),
+    REGIOEXPRESS("RegioExpress"),
+    ITALO("Italo"),
+    NIGHTJET("Nightjet"),
+    INTERCITÉS("Intercités"),
+    THALYS("Thalys"),
+    EUROSTAR("EuroStar"),
+    RE("RE"),
+    TER("TER"),
+    IC("IC"),
+    AVE("AVE"),
+    RAILJET("Railjet"),
+
     UNKNOWN("Unknown");
 
     private final String displayName;

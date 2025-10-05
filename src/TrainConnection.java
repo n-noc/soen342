@@ -3,7 +3,7 @@ import java.util.Set;
 
 public class TrainConnection {
 
-    private String routeID;
+    private final String routeID;
     public String departureCity;
     public String arrivalCity;
     public LocalTime departureTime;
@@ -12,10 +12,11 @@ public class TrainConnection {
     public Set<DayOfWeek> daysOfOperation;
     public int firstClassRate;
     public int secondClassRate;
-    public Duration tripDuration;
+    private final java.time.Duration tripDuration;
+    public int arrivalDayOffset;
 
 
-    public TrainConnection(String routeID, String departureCity, String arrivalCity, LocalTime departureTime, LocalTime arrivalTime, TrainType traintype, Set<DayOfWeek> daysOfOperation, int firstClassRate, int secondClassRate) {
+    public TrainConnection(String routeID, String departureCity, String arrivalCity, LocalTime departureTime, LocalTime arrivalTime, TrainType traintype, Set<DayOfWeek> daysOfOperation, int firstClassRate, int secondClassRate, int arrivalDayOffset) {
         this.routeID = routeID;
         this.departureCity = departureCity;
         this.arrivalCity = arrivalCity;
@@ -25,9 +26,19 @@ public class TrainConnection {
         this.daysOfOperation = daysOfOperation;
         this.firstClassRate = firstClassRate;
         this.secondClassRate = secondClassRate;
-        //calculating trip duration for 2 scenarios whether trip is >24h or less
-        if (arrivalTime.isBefore(departureTime)) { this.tripDuration = Duration.between(departureTime, arrivalTime.plusHours(24)); }
-        else { this.tripDuration = Duration.between(departureTime, arrivalTime); }
+        this.arrivalDayOffset = arrivalDayOffset;
+
+        java.time.Duration d = java.time.Duration.between(departureTime, arrivalTime);
+
+        if (arrivalDayOffset > 0) {
+            d = d.plusDays(arrivalDayOffset);
+        }
+
+        if (d.isNegative()) {
+            d = d.plusDays(1);
+        }
+
+        this.tripDuration = d;
     }
 
     public String getRouteID() {
@@ -45,9 +56,6 @@ public class TrainConnection {
     public LocalTime getArrivalTime() {
         return arrivalTime;
     }
-    public Duration getTripDuration() {
-        return tripDuration;
-    }
     public TrainType getTraintype() {
         return traintype;
     }
@@ -60,8 +68,28 @@ public class TrainConnection {
     public int getSecondClassRate() {
         return secondClassRate;
     }
-
-    public String toString() {
-        return departureCity + "->" + arrivalCity + "(" + departureTime + "->" + arrivalTime + ", trip duration" + tripDuration + ", train type: " + traintype + ", DAYS" + daysOfOperation + ", First Class: " + firstClassRate + ", Second Class: " + secondClassRate;
+    public int getArrivalDayOffset() {
+        return arrivalDayOffset;
     }
+    public java.time.Duration getTripDuration() {
+        return tripDuration;
+    }
+
+    private static String formatDuration(java.time.Duration d) {
+        long minutes = d.toMinutes();
+        long h = minutes / 60;
+        long m = minutes % 60;
+        if (h > 0 && m > 0) return h + "h " + m + "m";
+        if (h > 0) return h + "h";
+        return m + "m";
+    }
+
+    @Override
+    public String toString() {
+        return departureCity + "->" + arrivalCity + " (" + departureTime + "->" + arrivalTime + (arrivalDayOffset > 0 ? " (+" + arrivalDayOffset + "d)" : "") +
+                ", trip: " + formatDuration(tripDuration) +
+                ", train type: " + traintype +
+                ", DAYS" + daysOfOperation +
+                ", First Class: " + firstClassRate +
+                ", Second Class: " + secondClassRate + ")";}
 }
