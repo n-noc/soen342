@@ -1,27 +1,29 @@
 package search;
 
-import java.util.Set;
+import java.util.*;
 
-
-// class that holds all the filters that the user can set except route-id
+/**
+ * Holds all public search parameters (except route-id) for Issue 2.
+ */
 public class SearchQuery {
+    // -------- Fields --------
     private String fromCity;
     private String toCity;
-    private String depStart;
+    private String depStart;   // "HH:mm" or null
     private String depEnd;
     private String arrStart;
     private String arrEnd;
     private String trainType;
-    private Set<String> days;  //mon,tue...
-    private String priceClass;   // first, second, class (price chnages)
-    private Integer maxPrice;
-    private String sortBy;      //can sort by duration, first price, second pruce (class)
-    private String sortDir;    //sort in ascending/descending order 
+    private Set<String> days;  // e.g., {"MON","TUE"}
+    private String priceClass; // FIRST | SECOND | ANY
+    private Integer maxPrice;  // cents or euros (document which)
+    private String sortBy;     // DURATION | PRICE_FIRST | PRICE_SECOND
+    private String sortDir;    // ASC | DESC
 
-
-    // constructor
-    public SearchQuery(String fromCity, String toCity, String depStart, String depEnd, String arrStart, String arrEnd,
-                       String trainType, Set<String> days, String priceClass, Integer maxPrice, String sortBy, String sortDir) {
+    // -------- Constructor --------
+    public SearchQuery(String fromCity, String toCity, String depStart, String depEnd,
+                       String arrStart, String arrEnd, String trainType, Set<String> days,
+                       String priceClass, Integer maxPrice, String sortBy, String sortDir) {
         this.fromCity = fromCity;
         this.toCity = toCity;
         this.depStart = depStart;
@@ -29,36 +31,99 @@ public class SearchQuery {
         this.arrStart = arrStart;
         this.arrEnd = arrEnd;
         this.trainType = trainType;
-        this.days = days;
+        this.days = (days != null) ? new HashSet<>(days) : new HashSet<>();
         this.priceClass = priceClass;
         this.maxPrice = maxPrice;
         this.sortBy = sortBy;
         this.sortDir = sortDir;
     }
-    // normalzie the input
+
+    // -------- Normalize --------
     public void normalize() {
-        if(fromCity!=null){
-            fromCity=fromCity.trim().toLowerCase()
-        }
-        if(toCity!=null){
-            toCity=toCity.trim().toLowerCase()
+        if (fromCity != null)  fromCity  = fromCity.trim().toLowerCase();
+        if (toCity != null)    toCity    = toCity.trim().toLowerCase();
+        if (trainType != null) trainType = trainType.trim().toLowerCase();
+
+        // Normalize days: "Monday"/"mon" -> "MON"
+        if (days != null && !days.isEmpty()) {
+            Set<String> normalizedDays = new HashSet<>();
+            for (String d : days) {
+                if (d == null) continue;
+                String s = d.trim().toUpperCase(Locale.ROOT);
+                // keep first 3 chars when possible, otherwise keep whatever we have
+                normalizedDays.add(s.length() >= 3 ? s.substring(0, 3) : s);
+            }
+            days = normalizedDays;
         }
     }
 
-    // validate the input
+    // -------- Validate --------
     public void validate() {
-      // defualt sorting is duration
-      if(fromCity==null){
-        sortBy="DURATION";
+        // Defaults
+        if (sortBy == null)     sortBy = "DURATION";
+        if (sortDir == null)    sortDir = "ASC";
+        if (priceClass == null) priceClass = "ANY";
+
+        // Enums
+        List<String> validSortBy      = Arrays.asList("DURATION", "PRICE_FIRST", "PRICE_SECOND");
+        List<String> validSortDir     = Arrays.asList("ASC", "DESC");
+        List<String> validPriceClass  = Arrays.asList("FIRST", "SECOND", "ANY");
+
+        if (!validSortBy.contains(sortBy.toUpperCase()))
+            throw new IllegalArgumentException("Invalid sortBy: " + sortBy);
+
+        if (!validSortDir.contains(sortDir.toUpperCase()))
+            throw new IllegalArgumentException("Invalid sortDir: " + sortDir);
+
+        if (!validPriceClass.contains(priceClass.toUpperCase()))
+            throw new IllegalArgumentException("Invalid priceClass: " + priceClass);
+
+        // time fomat HH:mm
+        String hhmm = "^([01]\\d|2[0-3]):[0-5]\\d$"; 
+
+        if (depStart != null && !depStart.matches(hhmm))
+            throw new IllegalArgumentException("Invalid depStart (HH:mm): " + depStart);
+        if (depEnd   != null && !depEnd.matches(hhmm))
+            throw new IllegalArgumentException("Invalid depEnd (HH:mm): " + depEnd);
+        if (arrStart != null && !arrStart.matches(hhmm))
+            throw new IllegalArgumentException("Invalid arrStart (HH:mm): " + arrStart);
+        if (arrEnd   != null && !arrEnd.matches(hhmm))
+            throw new IllegalArgumentException("Invalid arrEnd (HH:mm): " + arrEnd);
+
+        // Price
+        if (maxPrice != null && maxPrice < 0)
+            throw new IllegalArgumentException("Invalid maxPrice (must be >= 0): " + maxPrice);
     }
-    if(sortDir==null){
-        sortDir="ASC";
+
+    // -------- Getters --------
+    public String getFromCity()   { return fromCity; }
+    public String getToCity()     { return toCity; }
+    public String getDepStart()   { return depStart; }
+    public String getDepEnd()     { return depEnd; }
+    public String getArrStart()   { return arrStart; }
+    public String getArrEnd()     { return arrEnd; }
+    public String getTrainType()  { return trainType; }
+    public Set<String> getDays()  { return days; }
+    public String getPriceClass() { return priceClass; }
+    public Integer getMaxPrice()  { return maxPrice; }
+    public String getSortBy()     { return sortBy; }
+    public String getSortDir()    { return sortDir; }
+
+    @Override
+    public String toString() {
+        return "SearchQuery{" +
+                "fromCity='" + fromCity + '\'' +
+                ", toCity='" + toCity + '\'' +
+                ", depStart='" + depStart + '\'' +
+                ", depEnd='" + depEnd + '\'' +
+                ", arrStart='" + arrStart + '\'' +
+                ", arrEnd='" + arrEnd + '\'' +
+                ", trainType='" + trainType + '\'' +
+                ", days=" + days +
+                ", priceClass='" + priceClass + '\'' +
+                ", maxPrice=" + maxPrice +
+                ", sortBy='" + sortBy + '\'' +
+                ", sortDir='" + sortDir + '\'' +
+                '}';
     }
-    if(!(sortBy.equals("DURATION") || sortBy.equals("PRICE_FIRST") || sortBy.equals("PRICE_SECOND"))){
-        throw new IllegalArgumentException("Invalid sortBy: "+sortBy);
-    }   
-    }
-    
-    // API
-    
 }
