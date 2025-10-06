@@ -1,3 +1,4 @@
+package domain;
 public enum TrainType {
     ICE("ICE"),
     RJX("RJX"),

@@ -1,6 +1,9 @@
+package app;
 import java.io.IOException;
 import java.time.DayOfWeek;
 import java.util.List;
+
+import infra.TrainNetwork;
 
 public class Main {
 

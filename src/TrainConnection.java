@@ -1,6 +1,8 @@
 import java.time.*;
 import java.util.Set;
 
+import domain.TrainType;
+
 public class TrainConnection {
 
     private final String routeID;

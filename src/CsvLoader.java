@@ -5,6 +5,8 @@ import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.*;
 
+import domain.TrainType;
+
 public class CsvLoader {
 
     public static List<TrainConnection> load(String filePath) throws IOException {

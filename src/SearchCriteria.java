@@ -1,4 +1,6 @@
 import java.time.*;
+
+import domain.TrainType;
 public class SearchCriteria {
 
     private String departureCity, arrivalCity;

@@ -1,6 +1,10 @@
+package infra;
 import java.io.IOException;
 import java.time.DayOfWeek;
 import java.util.*;
+
+import Route;
+import TrainConnection;
 
 public class TrainNetwork {
 
