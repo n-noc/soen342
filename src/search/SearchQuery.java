@@ -59,42 +59,30 @@ public class SearchQuery {
 
     // -------- Validate --------
     public void validate() {
-        // Defaults
-        if (sortBy == null)     sortBy = "DURATION";
-        if (sortDir == null)    sortDir = "ASC";
+        if (sortBy == null)  sortBy = "DURATION";   // FIXED
+        if (sortDir == null) sortDir = "ASC";
         if (priceClass == null) priceClass = "ANY";
-
-        // Enums
-        List<String> validSortBy      = Arrays.asList("DURATION", "PRICE_FIRST", "PRICE_SECOND");
-        List<String> validSortDir     = Arrays.asList("ASC", "DESC");
-        List<String> validPriceClass  = Arrays.asList("FIRST", "SECOND", "ANY");
-
+    
+        List<String> validSortBy   = Arrays.asList("DURATION","PRICE_FIRST","PRICE_SECOND");
+        List<String> validSortDir  = Arrays.asList("ASC","DESC");
+        List<String> validPriceCls = Arrays.asList("FIRST","SECOND","ANY");
+    
         if (!validSortBy.contains(sortBy.toUpperCase()))
             throw new IllegalArgumentException("Invalid sortBy: " + sortBy);
-
+    
         if (!validSortDir.contains(sortDir.toUpperCase()))
             throw new IllegalArgumentException("Invalid sortDir: " + sortDir);
-
-        if (!validPriceClass.contains(priceClass.toUpperCase()))
+    
+        if (!validPriceCls.contains(priceClass.toUpperCase()))              // FIXED
             throw new IllegalArgumentException("Invalid priceClass: " + priceClass);
-
-        // time fomat HH:mm
-        String hhmm = "^([01]\\d|2[0-3]):[0-5]\\d$"; 
-
-        if (depStart != null && !depStart.matches(hhmm))
-            throw new IllegalArgumentException("Invalid depStart (HH:mm): " + depStart);
-        if (depEnd   != null && !depEnd.matches(hhmm))
-            throw new IllegalArgumentException("Invalid depEnd (HH:mm): " + depEnd);
-        if (arrStart != null && !arrStart.matches(hhmm))
-            throw new IllegalArgumentException("Invalid arrStart (HH:mm): " + arrStart);
-        if (arrEnd   != null && !arrEnd.matches(hhmm))
-            throw new IllegalArgumentException("Invalid arrEnd (HH:mm): " + arrEnd);
-
-        // Price
-        if (maxPrice != null && maxPrice < 0)
-            throw new IllegalArgumentException("Invalid maxPrice (must be >= 0): " + maxPrice);
+    
+        String hhmm = "^([01]?\\d|2[0-3]):[0-5]\\d$";
+        if (depStart != null && !depStart.matches(hhmm)) throw new IllegalArgumentException("Invalid depStart: " + depStart);
+        if (depEnd   != null && !depEnd.matches(hhmm))   throw new IllegalArgumentException("Invalid depEnd: "   + depEnd);
+        if (arrStart != null && !arrStart.matches(hhmm)) throw new IllegalArgumentException("Invalid arrStart: " + arrStart);
+        if (arrEnd   != null && !arrEnd.matches(hhmm))   throw new IllegalArgumentException("Invalid arrEnd: "   + arrEnd);
+        if (maxPrice != null && maxPrice < 0)            throw new IllegalArgumentException("Invalid maxPrice: " + maxPrice);
     }
-
     // -------- Getters --------
     public String getFromCity()   { return fromCity; }
     public String getToCity()     { return toCity; }

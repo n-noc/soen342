@@ -94,5 +94,107 @@ public class Main {
         });
 
         System.out.println("\nDone.");
+
+
+        // ===== Search (Issue 2 real demos) =====
+System.out.println("\n=== Search (Issue 2 demos) ===");
+
+System.out.println("\n=== Search (Issue 2 demos) ===");
+
+// 1) A Coruña → Santander — wide window to include 12:50
+{
+    SearchQuery q1 = new SearchQuery(
+            "a coruña", "santander",
+            "00:00", "23:59",     // include 12:50
+            null, null,
+            null,
+            null,
+            "ANY",
+            null,
+            "DURATION",
+            "ASC"
+    );
+    q1.normalize();
+    q1.validate();
+
+    List<Route> results1 = SearchService.direct(net, q1);
+    System.out.println("\n[1] A Coruña → Santander (any time)");
+    if (results1.isEmpty()) {
+        System.out.println("  No matches.");
+    } else {
+        results1.stream().limit(10).forEach(r -> System.out.printf(
+                "  %s → %s  dep %s  arr %s  dur %d min  type %s  1st€%d  2nd€%d%n",
+                r.getDepartureCity(), r.getArrivalCity(),
+                r.getDepartureTime(), r.getArrivalTime(),
+                r.getDurationMinutes(), r.getTrainType(),
+                r.getFirstClassPrice(), r.getSecondClassPrice()
+        ));
+        System.out.println("  ... total: " + results1.size());
     }
 }
+
+// 2) Alicante departures — afternoon/evening window to match your prints
+{
+    SearchQuery q2 = new SearchQuery(
+            "alicante", null,
+            "12:00", "23:59",     // include 15:25, 19:35, 21:40, etc.
+            null, null,
+            null,
+            null,
+            "ANY",
+            null,
+            "DURATION",
+            "ASC"
+    );
+    q2.normalize();
+    q2.validate();
+
+    List<Route> results2 = SearchService.direct(net, q2);
+    System.out.println("\n[2] From Alicante 12:00–23:59 (by duration)");
+    if (results2.isEmpty()) {
+        System.out.println("  No matches.");
+    } else {
+        results2.stream().limit(10).forEach(r -> System.out.printf(
+                "  %s → %s  dep %s  arr %s  dur %d min  type %s  1st€%d  2nd€%d%n",
+                r.getDepartureCity(), r.getArrivalCity(),
+                r.getDepartureTime(), r.getArrivalTime(),
+                r.getDurationMinutes(), r.getTrainType(),
+                r.getFirstClassPrice(), r.getSecondClassPrice()
+        ));
+        System.out.println("  ... total: " + results2.size());
+    }
+}
+
+// 3) From Madrid — cap second-class ≤ €80, sort by second-class price
+{
+    SearchQuery q3 = new SearchQuery(
+            "madrid", null,
+            null, null,
+            null, null,
+            null,
+            null,
+            "SECOND",        // compare 2nd-class
+            80,              // max 80€
+            "PRICE_SECOND",  // sort by 2nd-class price
+            "ASC"
+    );
+    q3.normalize();
+    q3.validate();
+
+    List<Route> results3 = SearchService.direct(net, q3);
+    System.out.println("\n[3] From Madrid, 2nd-class ≤ €80 (by 2nd-class price)");
+    if (results3.isEmpty()) {
+        System.out.println("  No matches.");
+    } else {
+        results3.stream().limit(10).forEach(r -> System.out.printf(
+                "  %s → %s  dep %s  arr %s  type %s  2nd€%d  dur %d min%n",
+                r.getDepartureCity(), r.getArrivalCity(),
+                r.getDepartureTime(), r.getArrivalTime(),
+                r.getTrainType(), r.getSecondClassPrice(), r.getDurationMinutes()
+        ));
+        System.out.println("  ... total: " + results3.size());
+    }
+}
+
+System.out.println("\nDone with Issue 2 demos.");
+    }}

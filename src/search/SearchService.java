@@ -23,7 +23,7 @@ public final class SearchService {
 
         // filter then sort
         return base
-                .filter(r -> RouteFilters.routeMatches(q, r))
+                .filter(r -> RouteFilters.matches(q, r))
                 .sorted(cmp)
                 .toList();
     }
