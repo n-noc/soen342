@@ -3,8 +3,8 @@ import java.io.IOException;
 import java.time.DayOfWeek;
 import java.util.*;
 
-import Route;
-import TrainConnection;
+import domain.Route;
+import domain.TrainConnection;
 
 public class TrainNetwork {
 
@@ -58,11 +58,35 @@ public class TrainNetwork {
     private void rebuildRoutesIndex() {
         routesByKey.clear();
         for (TrainConnection tc : allConnections) {
+            // Convert Set<DayOfWeek> → "MTWTFSS"
+            String daysStr = "";
+            if (tc.getDaysOfOperation() != null) {
+                StringBuilder sb = new StringBuilder();
+                for (DayOfWeek d : DayOfWeek.values()) {
+                    if (tc.getDaysOfOperation().contains(d)) {
+                        sb.append(d.name().charAt(0)); // e.g., MON -> M, TUE -> T
+                    } else {
+                        sb.append("-");
+                    }
+                }
+                daysStr = sb.toString();
+            }
+    
+            // Build a Route with all converted values
+            Route route = new Route(
+                tc.getRouteID(),                        // route ID
+                tc.getDepartureCity(),                  // from
+                tc.getArrivalCity(),                    // to
+                tc.getDepartureTime().toString(),       // convert LocalTime -> "HH:mm"
+                tc.getArrivalTime().toString(),         // convert LocalTime -> "HH:mm"
+                tc.getTraintype().name(),               // TrainType enum -> String
+                daysStr,                                // days of operation
+                tc.getFirstClassRate(),                 // first class price
+                tc.getSecondClassRate()                 // second class price
+            );
+    
             String key = keyFor(tc.getDepartureCity(), tc.getArrivalCity());
-            //if key is already in map return it, otherwise create new one
-            Route route = routesByKey.computeIfAbsent(
-                    key, k -> new Route(tc.getDepartureCity(), tc.getArrivalCity()));
-            route.addConnection(tc);
+            routesByKey.put(key, route);
         }
     }
 

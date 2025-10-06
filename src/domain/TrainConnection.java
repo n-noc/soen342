@@ -1,7 +1,6 @@
+package domain;
 import java.time.*;
 import java.util.Set;
-
-import domain.TrainType;
 
 public class TrainConnection {
 

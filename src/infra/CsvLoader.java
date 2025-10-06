@@ -1,3 +1,4 @@
+package infra;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -6,6 +7,7 @@ import java.time.LocalTime;
 import java.util.*;
 
 import domain.TrainType;
+import domain.TrainConnection;
 
 public class CsvLoader {
 
