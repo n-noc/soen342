@@ -135,6 +135,19 @@ System.out.println("\n=== Search (Issue 2 demos) ===");
 
 // 2) Alicante departures — afternoon/evening window to match your prints
 {
+    // === Debug: All routes from Alicante (verify index) ===
+System.out.println("\n=== Debug: All routes from Alicante (verify index) ===");
+int alicanteRouteCount = 0;
+for (Route r : net.getAllRoutes()) {
+    if (r.getDepartureCity() != null && r.getDepartureCity().equalsIgnoreCase("Alicante")) {
+        alicanteRouteCount++;
+        System.out.printf("  [DBG] %s → %s  dep %s  arr %s  type %s%n",
+                r.getDepartureCity(), r.getArrivalCity(),
+                r.getDepartureTime(), r.getArrivalTime(),
+                r.getTrainType());
+    }
+}
+System.out.println("Total Alicante departures found in index: " + alicanteRouteCount);
     SearchQuery q2 = new SearchQuery(
             "alicante", null,
             "12:00", "23:59",     // include 15:25, 19:35, 21:40, etc.
