@@ -9,10 +9,7 @@ import infra.TrainNetwork;
 import java.util.*;
 
 // Builds indirect itineraries (0..N transfers) between two cities.
-// Expands city graph using TrainNetwork.getRoutesFrom(currentCity)
-// Filters each candidate leg with RouteFilters.matches(SearchQuery, Route)
-// Validates connections with TransferRules (min/max transfer, city continuity, types)
-// Avoids city cycles within a single itinerary
+
 public final class IndirectSearchService {
 
     private IndirectSearchService() {}
@@ -91,8 +88,6 @@ public final class IndirectSearchService {
                 String key = itineraryKey(cur.itinerary);
                 if (seenKeys.add(key)) {
                     results.add(cur.itinerary);
-                    // debug: show we captured a result
-                    System.out.println("[DBG] ✅ Reached goal with " + cur.itinerary.getLegs().size() + " legs.");
                 }
                 continue;
             }

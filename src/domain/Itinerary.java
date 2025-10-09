@@ -13,7 +13,7 @@ public class Itinerary {
     //data
     private final List<Leg> legs = new ArrayList<>();
 
-    // Derived totals (call recomputeTotals() after modifying legs)
+    // Derived totals 
     private int totalDurationMinutes;     // sum(legDuration) + sum(transferFromPrev)
     private int totalTransferMinutes;     // sum(transferFromPrev)
     private int totalFirstClassPrice;     // sum(route.firstClassPrice)
@@ -112,14 +112,14 @@ public class Itinerary {
         return last == null ? null : last.getArrivalTime();
     }
 
-    // ---- Totals ----
+    // totals
 
     public int getTotalDurationMinutes()    { return totalDurationMinutes; }
     public int getTotalTransferMinutes()    { return totalTransferMinutes; }
     public int getTotalFirstClassPrice()    { return totalFirstClassPrice; }
     public int getTotalSecondClassPrice()   { return totalSecondClassPrice; }
 
-    // ---- Equality / Hashing ----
+
     // Two itineraries are considered equal if their ordered legs are equal.
     @Override
     public boolean equals(Object o) {
@@ -133,7 +133,7 @@ public class Itinerary {
         return legs.hashCode();
     }
 
-    // ---- Pretty print ----
+    //good formating to print
 
     @Override
     public String toString() {

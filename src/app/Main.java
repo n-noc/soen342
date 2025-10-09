@@ -1,252 +1,253 @@
 package app;
 
-import domain.Route;
-import domain.TrainConnection;
 import domain.Itinerary;
 import domain.ItineraryComparators;
+import domain.Route;
+import domain.TrainConnection;
 import infra.TrainNetwork;
 import search.SearchQuery;
 import search.SearchService;
 import search.IndirectSearchService;
 
 import java.io.IOException;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 public class Main {
 
+    private static final Scanner sc = new Scanner(System.in);
+    private static TrainNetwork net = new TrainNetwork();
+    private static boolean dataLoaded = false;
+
     public static void main(String[] args) {
-        String csvPath = "./resources/eu_rail_network.csv";
+        showBanner();
 
-        TrainNetwork net = new TrainNetwork();
+        int choice;
+        do {
+            showMenu();
+            System.out.print("Enter your choice: ");
+            choice = getIntInput();
+
+            switch (choice) {
+                case 1 -> loadNetwork();
+                case 2 -> viewCitiesAndRoutes();
+                case 3 -> findDeparturesFromCity();
+                case 4 -> lookupDirectRoute();
+                case 5 -> searchRoutesWithFilters();
+                case 6 -> viewIndirectItineraries();
+                case 0 -> System.out.println("Exiting system. Goodbye!");
+                default -> System.out.println("❌ Invalid option. Try again.");
+            }
+
+        } while (choice != 0);
+    }
+
+//  menu methods
+
+    private static void showBanner() {
+        System.out.println("""
+                ==========================================
+                   🚆  EU Rail Itinerary System 🚆
+                ==========================================
+                Welcome! This system allows you to:
+                - Explore train routes and schedules
+                - Search and compare available trips
+                - View direct and indirect itineraries
+                ==========================================
+                """);
+    }
+
+    private static void showMenu() {
+        System.out.println("""
+                MAIN MENU
+                ==========================================
+                1. Load train network data 
+                2. View all cities and sample routes 
+                3. Find routes departing from a city 
+                4. Look up a direct route between two cities 
+                5. Search routes using custom filters 
+                6. View itineraries including transfers 
+                ------------------------------------------
+                0. Exit system
+                ==========================================
+                """);
+    }
+
+    private static void loadNetwork() {
+        System.out.println("Loading train network...");
         try {
-            net.load(csvPath);
+            net.load("./resources/eu_rail_network.csv");
+            dataLoaded = true;
+            System.out.println("✅ Data loaded successfully!");
+            System.out.println("Total routes: " + net.getAllRoutes().size());
+            System.out.println("Total connections: " + net.getAllConnections().size());
         } catch (IOException e) {
-            System.err.println("Failed to load CSV: " + e.getMessage());
-            return;
+            System.err.println("❌ Failed to load CSV: " + e.getMessage());
         }
+    }
 
-        System.out.println("=== Loaded Data ===");
-        System.out.println("Total connections loaded: " + net.getAllConnections().size());
-        System.out.println("Total direct routes (city pairs): " + net.getAllRoutes().size());
-
-        // ---- Show a few routes ----
+    private static void viewCitiesAndRoutes() {
+        ensureDataLoaded();
         System.out.println("\n=== Sample Routes ===");
-        net.getAllRoutes().stream().limit(5).forEach(r -> {
-            System.out.printf("  [%s] %s → %s  dep %s  arr %s  type %s  first %d  second %d  days %s  dur %d min%n",
-                    r.getRouteId(),
-                    r.getDepartureCity(), r.getArrivalCity(),
-                    r.getDepartureTime(), r.getArrivalTime(),
-                    r.getTrainType(),
-                    r.getFirstClassPrice(), r.getSecondClassPrice(),
-                    r.getDaysSet(), r.getDurationMinutes());
-        });
+        net.getAllRoutes().stream().limit(10).forEach(r ->
+                System.out.printf("  %s → %s  dep %s  arr %s  type %s  dur %d min%n",
+                        r.getDepartureCity(), r.getArrivalCity(),
+                        r.getDepartureTime(), r.getArrivalTime(),
+                        r.getTrainType(), r.getDurationMinutes()));
+    }
 
-        // ---- Show a few departures (TrainConnection) from a city ----
-        String city = "Alicante";
-        System.out.println("\n=== Departures from " + city + " ===");
-        net.getDeparturesFrom(city).stream().limit(5).forEach(tc -> {
-            System.out.printf("  %s → %s  %s → %s  type %s  first %d  second %d  days %s%n",
-                    tc.getDepartureCity(), tc.getArrivalCity(),
-                    tc.getDepartureTime(), tc.getArrivalTime(),
-                    tc.getTraintype(), tc.getFirstClassRate(), tc.getSecondClassRate(),
-                    tc.getDaysOfOperation());
-        });
-
-        // ---- Direct route lookup by city pair (if present) ----
-        String from = "A Coruña";
-        String to   = "Santander";
-        Route route = net.getRoute(from, to);
-        if (route != null) {
-            System.out.println("\n=== Direct Route " + from + " → " + to + " ===");
-            System.out.printf("  [%s] dep %s  arr %s  type %s  first %d  second %d  days %s  dur %d min%n",
-                    route.getRouteId(),
-                    route.getDepartureTime(), route.getArrivalTime(),
-                    route.getTrainType(),
-                    route.getFirstClassPrice(), route.getSecondClassPrice(),
-                    route.getDaysSet(), route.getDurationMinutes());
+    private static void findDeparturesFromCity() {
+        ensureDataLoaded();
+        System.out.print("Enter city name: ");
+        String city = sc.nextLine().trim();
+        List<TrainConnection> list = net.getDeparturesFrom(city);
+        if (list.isEmpty()) {
+            System.out.println("No departures found from " + city);
         } else {
-            System.out.println("\nNo direct route " + from + " → " + to);
+            list.stream().limit(10).forEach(tc ->
+                    System.out.printf("  %s → %s  %s → %s  type %s%n",
+                            tc.getDepartureCity(), tc.getArrivalCity(),
+                            tc.getDepartureTime(), tc.getArrivalTime(),
+                            tc.getTraintype()));
         }
+    }
 
-        // ---- Issue 2: run a sample search using your SearchService ----
-        System.out.println("\n=== Search (Issue 2 demo) ===");
+    private static void lookupDirectRoute() {
+        ensureDataLoaded();
+        System.out.print("Enter departure city: ");
+        String from = sc.nextLine().trim();
+        System.out.print("Enter destination city: ");
+        String to = sc.nextLine().trim();
+
+        Route route = net.getRoute(from, to);
+        if (route == null) {
+            System.out.println("No direct route found between " + from + " and " + to);
+        } else {
+            System.out.printf("  %s → %s  dep %s  arr %s  dur %d min  type %s%n",
+                    route.getDepartureCity(), route.getArrivalCity(),
+                    route.getDepartureTime(), route.getArrivalTime(),
+                    route.getDurationMinutes(), route.getTrainType());
+        }
+    }
+
+    private static void searchRoutesWithFilters() {
+        ensureDataLoaded();
+    
+        System.out.print("Enter departure city: ");
+        String from = sc.nextLine().trim();
+    
+        System.out.print("Destination city (optional, press Enter for any): ");
+        String to = sc.nextLine().trim();
+        if (to.isEmpty()) to = null;
+    
+        System.out.print("Earliest departure (HH:mm): ");
+        String depStartRaw = sc.nextLine();
+        System.out.print("Latest departure (HH:mm): ");
+        String depEndRaw = sc.nextLine();
+    
+        String depStart = normalizeTimeInput(depStartRaw, "00:00");
+        String depEnd   = normalizeTimeInput(depEndRaw,   "23:59");
+    
         SearchQuery q = new SearchQuery(
-                "alicante",          // fromCity (case-insensitive)
-                null,                // toCity
-                "08:00", "12:00",    // departure window [08:00..12:00]
-                null, null,          // arrival window (none)
-                null,                // trainType (any)
-                null,                // days (any)
-                "ANY",               // price class
-                null,                // max price
-                "DURATION",          // sort by duration
-                "ASC"                // ascending
+                from, to,
+                depStart, depEnd,
+                null, null,           // arrival window
+                null,                 // trainType
+                null,                 // days
+                "ANY", null,          // price class + max price
+                "DURATION", "ASC"     // sort
         );
         q.normalize();
         q.validate();
+    
+        var results = SearchService.direct(net, q);
+    
+        System.out.println("\nResults: " + results.size());
+        results.stream().limit(20).forEach(r -> System.out.printf(
+                "  %s → %s  dep %s  arr %s  dur %d min  type %s  1st€%d  2nd€%d%n",
+                r.getDepartureCity(), r.getArrivalCity(),
+                r.getDepartureTime(), r.getArrivalTime(),
+                r.getDurationMinutes(), r.getTrainType(),
+                r.getFirstClassPrice(), r.getSecondClassPrice()
+        ));
+    }
 
-        List<Route> results = SearchService.direct(net, q);
-        System.out.println("Results: " + results.size());
-        results.stream().limit(5).forEach(r -> {
-            System.out.printf("  %s → %s  dep %s  arr %s  dur %d min  type %s  first %d  second %d%n",
-                    r.getDepartureCity(), r.getArrivalCity(),
-                    r.getDepartureTime(), r.getArrivalTime(),
-                    r.getDurationMinutes(), r.getTrainType(),
-                    r.getFirstClassPrice(), r.getSecondClassPrice());
-        });
+    private static void viewIndirectItineraries() {
+        ensureDataLoaded();
+        System.out.print("Enter departure city: ");
+        String from = sc.nextLine().trim();
+        System.out.print("Enter destination city: ");
+        String to = sc.nextLine().trim();
 
-        // ===== Search (Issue 2 real demos) =====
-        System.out.println("\n=== Search (Issue 2 demos) ===");
-
-        // 1) A Coruña → Santander — wide window to include 12:50
-        {
-            SearchQuery q1 = new SearchQuery(
-                    "a coruña", "santander",
-                    "00:00", "23:59",
-                    null, null,
-                    null,
-                    null,
-                    "ANY",
-                    null,
-                    "DURATION",
-                    "ASC"
-            );
-            q1.normalize(); q1.validate();
-
-            List<Route> results1 = SearchService.direct(net, q1);
-            System.out.println("\n[1] A Coruña → Santander (any time)");
-            if (results1.isEmpty()) {
-                System.out.println("  No matches.");
-            } else {
-                results1.stream().limit(10).forEach(r -> System.out.printf(
-                        "  %s → %s  dep %s  arr %s  dur %d min  type %s  1st€%d  2nd€%d%n",
-                        r.getDepartureCity(), r.getArrivalCity(),
-                        r.getDepartureTime(), r.getArrivalTime(),
-                        r.getDurationMinutes(), r.getTrainType(),
-                        r.getFirstClassPrice(), r.getSecondClassPrice()
-                ));
-                System.out.println("  ... total: " + results1.size());
-            }
-        }
-
-        // 2) Alicante departures — afternoon/evening window
-        {
-            System.out.println("\n=== Debug: All routes from Alicante (verify index) ===");
-            int alicanteRouteCount = 0;
-            for (Route r : net.getAllRoutes()) {
-                if (r.getDepartureCity() != null && r.getDepartureCity().equalsIgnoreCase("Alicante")) {
-                    alicanteRouteCount++;
-                    System.out.printf("  [DBG] %s → %s  dep %s  arr %s  type %s%n",
-                            r.getDepartureCity(), r.getArrivalCity(),
-                            r.getDepartureTime(), r.getArrivalTime(),
-                            r.getTrainType());
-                }
-            }
-            System.out.println("Total Alicante departures found in index: " + alicanteRouteCount);
-
-            SearchQuery q2 = new SearchQuery(
-                    "alicante", null,
-                    "12:00", "23:59",
-                    null, null,
-                    null,
-                    null,
-                    "ANY",
-                    null,
-                    "DURATION",
-                    "ASC"
-            );
-            q2.normalize(); q2.validate();
-
-            List<Route> results2 = SearchService.direct(net, q2);
-            System.out.println("\n[2] From Alicante 12:00–23:59 (by duration)");
-            if (results2.isEmpty()) {
-                System.out.println("  No matches.");
-            } else {
-                results2.stream().limit(10).forEach(r -> System.out.printf(
-                        "  %s → %s  dep %s  arr %s  dur %d min  type %s  1st€%d  2nd€%d%n",
-                        r.getDepartureCity(), r.getArrivalCity(),
-                        r.getDepartureTime(), r.getArrivalTime(),
-                        r.getDurationMinutes(), r.getTrainType(),
-                        r.getFirstClassPrice(), r.getSecondClassPrice()
-                ));
-                System.out.println("  ... total: " + results2.size());
-            }
-        }
-
-        // 3) From Madrid — cap second-class ≤ €80, sort by second-class price
-        {
-            SearchQuery q3 = new SearchQuery(
-                    "madrid", null,
-                    null, null,
-                    null, null,
-                    null,
-                    null,
-                    "SECOND",
-                    80,
-                    "PRICE_SECOND",
-                    "ASC"
-            );
-            q3.normalize(); q3.validate();
-
-            List<Route> results3 = SearchService.direct(net, q3);
-            System.out.println("\n[3] From Madrid, 2nd-class ≤ €80 (by 2nd-class price)");
-            if (results3.isEmpty()) {
-                System.out.println("  No matches.");
-            } else {
-                results3.stream().limit(10).forEach(r -> System.out.printf(
-                        "  %s → %s  dep %s  arr %s  type %s  2nd€%d  dur %d min%n",
-                        r.getDepartureCity(), r.getArrivalCity(),
-                        r.getDepartureTime(), r.getArrivalTime(),
-                        r.getTrainType(), r.getSecondClassPrice(), r.getDurationMinutes()
-                ));
-                System.out.println("  ... total: " + results3.size());
-            }
-        }
-
-        System.out.println("\nDone with Issue 2 demos.");
-
-        // =========================
-        // ===== Issue 3 demo  =====
-        // =========================
-        System.out.println("\n=== Issue 3: Indirect itineraries (max 2 transfers) ===");
-
-        SearchQuery qi = new SearchQuery(
-                // "a coruña", "santander",
-                "Aalborg", "Lund",
-                "00:00", "23:59",    // broad window; adjust if you want
-                null, null,
-                null,
-                null,
-                "ANY",
-                null,
-                "DURATION",
-                "ASC"
+        SearchQuery q = new SearchQuery(
+                from, to, "00:00", "23:59",
+                null, null, null, null,
+                "ANY", null, "DURATION", "ASC"
         );
-        qi.normalize(); qi.validate();
+        q.normalize(); q.validate();
 
-      // find itineraries allowing up to 2 transfers (i.e., up to 3 legs)
-        List<Itinerary> allItins = IndirectSearchService.find(net, qi, /*maxTransfers=*/2, /*maxResults=*/50);
-
-        // ✅ Keep only itineraries that have at least 1 transfer (≥ 2 legs)
-        List<Itinerary> itineraries = allItins.stream()
+        List<Itinerary> itineraries = IndirectSearchService.find(net, q, 2, 50).stream()
                 .filter(it -> it.getLegs().size() > 1)
                 .sorted(ItineraryComparators.BY_TOTAL_DURATION)
                 .toList();
 
-        System.out.println("Found multi-leg itineraries (with transfers): " + itineraries.size());
-
+        System.out.println("Found multi-leg itineraries: " + itineraries.size());
         if (itineraries.isEmpty()) {
-            System.out.println("  No indirect connections found (only direct).");
+            System.out.println("  No indirect routes found.");
         } else {
-            int show = Math.min(5, itineraries.size());
-            for (int i = 0; i < show; i++) {
-                Itinerary it = itineraries.get(i);
+            for (int i = 0; i < itineraries.size(); i++) {
                 System.out.println("\n---- Option " + (i + 1) + " ----");
-                System.out.println(it);
+                System.out.println(itineraries.get(i));
             }
         }
+    }
 
-        System.out.println("\nDone with Issue 3 demo.");
+    // helper methods
+
+    private static void ensureDataLoaded() {
+        if (!dataLoaded) {
+            System.out.println("⚠️ Please load the network data first (Option 1).");
+            throw new IllegalStateException("Data not loaded yet.");
+        }
+    }
+
+    private static int getIntInput() {
+        try {
+            return Integer.parseInt(sc.nextLine().trim());
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
+    private static String normalizeTimeInput(String s, String fallback) {
+        if (s == null || s.isBlank()) return fallback;
+        s = s.trim();
+    
+        // 8  -> 08:00
+        if (s.matches("\\d{1,2}")) {
+            int h = Integer.parseInt(s);
+            return String.format("%02d:00", h);
+        }
+    
+        // 800 or 1230 -> 08:00 or 12:30
+        if (s.matches("\\d{3,4}")) {
+            int n = Integer.parseInt(s);
+            int h = n / 100;
+            int m = n % 100;
+            return String.format("%02d:%02d", h, m);
+        }
+    
+        // 8:0, 8:5, 8:50, 12:5, etc -> HH:mm
+        if (s.matches("\\d{1,2}:\\d{1,2}")) {
+            String[] p = s.split(":");
+            int h = Integer.parseInt(p[0]);
+            int m = Integer.parseInt(p[1]);
+            return String.format("%02d:%02d", h, m);
+        }
+    
+        // already HH:mm
+        if (s.matches("\\d{2}:\\d{2}")) return s;
+    
+        // fallback if something odd was typed
+        return fallback;
     }
 }

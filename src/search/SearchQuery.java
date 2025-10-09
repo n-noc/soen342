@@ -6,7 +6,7 @@ import java.util.*;
  * Holds all public search parameters (except route-id) for Issue 2.
  */
 public class SearchQuery {
-    // -------- Fields --------
+    // fields
     private String fromCity;
     private String toCity;
     private String depStart;   // "HH:mm" or null
@@ -20,7 +20,7 @@ public class SearchQuery {
     private String sortBy;     // DURATION | PRICE_FIRST | PRICE_SECOND
     private String sortDir;    // ASC | DESC
 
-    // -------- Constructor --------
+    // constructor
     public SearchQuery(String fromCity, String toCity, String depStart, String depEnd,
                        String arrStart, String arrEnd, String trainType, Set<String> days,
                        String priceClass, Integer maxPrice, String sortBy, String sortDir) {
@@ -38,7 +38,7 @@ public class SearchQuery {
         this.sortDir = sortDir;
     }
 
-    // -------- Normalize --------
+    // normalize
     public void normalize() {
         if (fromCity != null)  fromCity  = fromCity.trim().toLowerCase();
         if (toCity != null)    toCity    = toCity.trim().toLowerCase();
@@ -57,7 +57,7 @@ public class SearchQuery {
         }
     }
 
-    // -------- Validate --------
+    // validate
     public void validate() {
         if (sortBy == null)  sortBy = "DURATION";   // FIXED
         if (sortDir == null) sortDir = "ASC";
@@ -83,7 +83,8 @@ public class SearchQuery {
         if (arrEnd   != null && !arrEnd.matches(hhmm))   throw new IllegalArgumentException("Invalid arrEnd: "   + arrEnd);
         if (maxPrice != null && maxPrice < 0)            throw new IllegalArgumentException("Invalid maxPrice: " + maxPrice);
     }
-    // -------- Getters --------
+    
+    // getters
     public String getFromCity()   { return fromCity; }
     public String getToCity()     { return toCity; }
     public String getDepStart()   { return depStart; }
