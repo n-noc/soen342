@@ -77,10 +77,10 @@ public final class IndirectSearchService {
             Route last = lastRoute(cur.itinerary);
             String atCity = safeLower(last.getArrivalCity());
 
-            // 🔍 debug
-            System.out.println("[DBG] Expanding from " + last.getArrivalCity() +
-                    " — " + net.getRoutesFrom(last.getArrivalCity()).size() + " candidates; legs=" +
-                    cur.itinerary.getLegs().size());
+            // debug
+            // System.out.println("[DBG] Expanding from " + last.getArrivalCity() +
+            //         " — " + net.getRoutesFrom(last.getArrivalCity()).size() + " candidates; legs=" +
+            //         cur.itinerary.getLegs().size());
 
             // reached destination
             if (goal.equals(atCity)) {
