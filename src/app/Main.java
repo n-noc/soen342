@@ -212,7 +212,8 @@ public class Main {
         System.out.println("\n=== Issue 3: Indirect itineraries (max 2 transfers) ===");
 
         SearchQuery qi = new SearchQuery(
-                "a coruña", "santander",
+                // "a coruña", "santander",
+                "Aalborg", "Lund",
                 "00:00", "23:59",    // broad window; adjust if you want
                 null, null,
                 null,

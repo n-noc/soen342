@@ -8,20 +8,15 @@ import infra.TrainNetwork;
 
 import java.util.*;
 
-
 // Builds indirect itineraries (0..N transfers) between two cities.
 // Expands city graph using TrainNetwork.getRoutesFrom(currentCity)
 // Filters each candidate leg with RouteFilters.matches(SearchQuery, Route)
-//  Validates connections with TransferRules (min transfer, city continuity, types)
+// Validates connections with TransferRules (min/max transfer, city continuity, types)
 // Avoids city cycles within a single itinerary
-
 public final class IndirectSearchService {
 
     private IndirectSearchService() {}
 
-
-    //Find itineraries from q.fromCity to q.toCity, honoring time/price/type filters in q,
-    //and connection constraints in rules.
     public static List<Itinerary> find(TrainNetwork net,
                                        SearchQuery q,
                                        int maxTransfers,
@@ -30,25 +25,54 @@ public final class IndirectSearchService {
         String goal  = safeLower(q.getToCity());
         if (isBlank(start) || isBlank(goal)) return List.of();
 
-        // seed: all FIRST LEGS from start city that pass Issue-2 filters
+        // qSeed: first leg must depart from q.fromCity, but can arrive anywhere
+        SearchQuery qSeed = new SearchQuery(
+                q.getFromCity(),
+                null, // drop toCity
+                q.getDepStart(), q.getDepEnd(),
+                q.getArrStart(), q.getArrEnd(),
+                q.getTrainType(),
+                q.getDays(),
+                q.getPriceClass(),
+                q.getMaxPrice(),
+                q.getSortBy(),
+                q.getSortDir()
+        );
+        qSeed.normalize();
+
+        // qLeg: subsequent legs can depart/arrive anywhere (no city constraints),
+        // but still obey time/type/price/day filters from q
+        SearchQuery qLeg = new SearchQuery(
+                null, // drop fromCity
+                null, // drop toCity
+                q.getDepStart(), q.getDepEnd(),
+                q.getArrStart(), q.getArrEnd(),
+                q.getTrainType(),
+                q.getDays(),
+                q.getPriceClass(),
+                q.getMaxPrice(),
+                q.getSortBy(),
+                q.getSortDir()
+        );
+        qLeg.normalize();
+
+        // ---- Seed queue with FIRST LEGS from start city ----
         Deque<PathState> queue = new ArrayDeque<>();
         for (Route r : net.getRoutesFrom(q.getFromCity())) {
-            if (!RouteFilters.matches(q, r)) continue;
+            if (!RouteFilters.matches(qSeed, r)) continue;
 
             Itinerary it = new Itinerary();
-            it.addLeg(new Leg(r,0, r.getDurationMinutes()));
+            it.addLeg(new Leg(r, 0, r.getDurationMinutes()));
             it.recomputeTotals();
 
             Set<String> visited = new HashSet<>();
             visited.add(start);
-            visited.add(safeLower(r.getArrivalCity())); // allow to block cycles
+            visited.add(safeLower(r.getArrivalCity()));
 
             queue.addLast(new PathState(it, visited));
         }
 
-        // BFS: naturally prioritizes fewer transfers
         List<Itinerary> results = new ArrayList<>();
-        // To dedupe identical sequences of routeIds
         Set<String> seenKeys = new HashSet<>();
 
         while (!queue.isEmpty() && results.size() < maxResults) {
@@ -56,37 +80,36 @@ public final class IndirectSearchService {
             Route last = lastRoute(cur.itinerary);
             String atCity = safeLower(last.getArrivalCity());
 
+            // 🔍 debug
+            System.out.println("[DBG] Expanding from " + last.getArrivalCity() +
+                    " — " + net.getRoutesFrom(last.getArrivalCity()).size() + " candidates; legs=" +
+                    cur.itinerary.getLegs().size());
+
             // reached destination
             if (goal.equals(atCity)) {
                 cur.itinerary.recomputeTotals();
                 String key = itineraryKey(cur.itinerary);
                 if (seenKeys.add(key)) {
                     results.add(cur.itinerary);
+                    // debug: show we captured a result
+                    System.out.println("[DBG] ✅ Reached goal with " + cur.itinerary.getLegs().size() + " legs.");
                 }
                 continue;
             }
 
-            // transfers used so far = legs - 1
             int transfersUsed = cur.itinerary.getLegs().size() - 1;
             if (transfersUsed >= maxTransfers) continue;
 
-            // expand from current city
+            // expand with subsequent legs (use qLeg: no from/to city filter)
             for (Route nxt : net.getRoutesFrom(last.getArrivalCity())) {
-                // basic Issue-2 filters
-                if (!RouteFilters.matches(q, nxt)) continue;
-
-                // enforce connection feasibility (city continuity, min transfer, type penalty)
+                if (!RouteFilters.matches(qLeg, nxt)) continue;
                 if (!TransferRules.isValidConnection(last, nxt)) continue;
 
                 String nextCity = safeLower(nxt.getArrivalCity());
-
-                // avoid revisiting cities (simple cycle prevention)
                 if (cur.visitedCities.contains(nextCity) && !goal.equals(nextCity)) continue;
 
-                // compute layover between last.arrival and next.departure
                 int gap = transferGapMinutes(last.getArrivalTime(), nxt.getDepartureTime());
 
-                // build the next itinerary
                 Itinerary nextIt = cloneItinerary(cur.itinerary);
                 nextIt.addLeg(new Leg(nxt, gap, nxt.getDurationMinutes()));
                 nextIt.recomputeTotals();
@@ -119,7 +142,7 @@ public final class IndirectSearchService {
     private static Itinerary cloneItinerary(Itinerary src) {
         Itinerary copy = new Itinerary();
         src.getLegs().forEach(L ->
-            copy.addLeg(new Leg(L.getRoute(), L.getTransferFromPrevMinutes(), L.getLegDurationMinutes()))
+                copy.addLeg(new Leg(L.getRoute(), L.getTransferFromPrevMinutes(), L.getLegDurationMinutes()))
         );
         copy.recomputeTotals();
         return copy;

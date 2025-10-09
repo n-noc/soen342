@@ -56,13 +56,17 @@ public class TrainNetwork {
     }
 
     /** Routes that depart from a given city (filters the flattened list). */
+    
     public List<Route> getRoutesFrom(String city) {
         if (city == null) return List.of();
         String want = city.trim();
+
         List<Route> out = new ArrayList<>();
+        // routesByKey holds List<Route> for each pair; scan all lists
         for (List<Route> list : routesByKey.values()) {
             for (Route r : list) {
-                if (r.getDepartureCity() != null && r.getDepartureCity().equalsIgnoreCase(want)) {
+                if (r.getDepartureCity() != null
+                        && r.getDepartureCity().equalsIgnoreCase(want)) {
                     out.add(r);
                 }
             }
@@ -71,8 +75,56 @@ public class TrainNetwork {
     }
 
     // Indirect connections 
+   // === Finds all possible city chains (paths) between 'from' and 'to' with up to maxStops transfers ===
     public List<List<TrainConnection>> findCityChains(String from, String to, int maxStops) {
-        return List.of();
+        List<List<TrainConnection>> results = new ArrayList<>();
+
+        if (from == null || to == null || maxStops < 1) return results;
+
+        // Normalize
+        from = from.trim().toLowerCase(Locale.ROOT);
+        to = to.trim().toLowerCase(Locale.ROOT);
+
+        // Breadth-First Search (BFS) through the network
+        Queue<List<TrainConnection>> queue = new LinkedList<>();
+
+        // Start with all direct departures from the starting city
+        for (TrainConnection conn : getDeparturesFrom(from)) {
+            List<TrainConnection> initialPath = new ArrayList<>();
+            initialPath.add(conn);
+            queue.add(initialPath);
+        }
+
+        while (!queue.isEmpty()) {
+            List<TrainConnection> path = queue.poll();
+            TrainConnection last = path.get(path.size() - 1);
+
+            String arrival = last.getArrivalCity().toLowerCase(Locale.ROOT);
+
+            // If we reached the destination, store this path
+            if (arrival.equals(to)) {
+                results.add(new ArrayList<>(path));
+                continue;
+            }
+
+            // Limit number of stops (transfers)
+            if (path.size() > maxStops) continue;
+
+            // Explore further connections from the current arrival city
+            for (TrainConnection next : getDeparturesFrom(arrival)) {
+                // Avoid cycles (don’t revisit cities already in the path)
+                boolean alreadyVisited = path.stream()
+                    .anyMatch(tc -> tc.getDepartureCity().equalsIgnoreCase(next.getArrivalCity()));
+                if (alreadyVisited) continue;
+
+                // Build a new extended path
+                List<TrainConnection> newPath = new ArrayList<>(path);
+                newPath.add(next);
+                queue.add(newPath);
+            }
+        }
+
+        return results;
     }
 
     // ---------- Index builders ----------
