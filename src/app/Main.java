@@ -46,7 +46,7 @@ public class Main {
     private static void showBanner() {
         System.out.println("""
                 ==========================================
-                   🚆  EU Rail Itinerary System 🚆
+                   EU Rail Itinerary System 
                 ==========================================
                 Welcome! This system allows you to:
                 - Explore train routes and schedules

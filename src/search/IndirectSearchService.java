@@ -53,7 +53,7 @@ public final class IndirectSearchService {
         );
         qLeg.normalize();
 
-        // ---- Seed queue with FIRST LEGS from start city ----
+        // queue with first legs from start city 
         Deque<PathState> queue = new ArrayDeque<>();
         for (Route r : net.getRoutesFrom(q.getFromCity())) {
             if (!RouteFilters.matches(qSeed, r)) continue;
@@ -95,7 +95,7 @@ public final class IndirectSearchService {
             int transfersUsed = cur.itinerary.getLegs().size() - 1;
             if (transfersUsed >= maxTransfers) continue;
 
-            // expand with subsequent legs (use qLeg: no from/to city filter)
+            // expand with subsequent legs 
             for (Route nxt : net.getRoutesFrom(last.getArrivalCity())) {
                 if (!RouteFilters.matches(qLeg, nxt)) continue;
                 if (!TransferRules.isValidConnection(last, nxt)) continue;
@@ -143,7 +143,7 @@ public final class IndirectSearchService {
         return copy;
     }
 
-    // "A→B|B→C|..." using routeIds when available, else city/time tuple
+    // A→B|B→C|... using routeIds when available, else city/time tuple
     private static String itineraryKey(Itinerary it) {
         StringBuilder sb = new StringBuilder();
         it.getLegs().forEach(L -> {
@@ -173,7 +173,7 @@ public final class IndirectSearchService {
         return s == null || s.trim().isEmpty();
     }
 
-    /** "HH:mm" difference considering next-day roll-over for departures before arrivals. */
+    // "HH:mm" difference considering next-day roll-over for departures before arrivals. 
     private static int transferGapMinutes(String arr, String dep) {
         int a = minutes(arr);
         int d = minutes(dep);

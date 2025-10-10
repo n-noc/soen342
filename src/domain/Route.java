@@ -37,7 +37,7 @@ public class Route {
     public int getFirstClassPrice() { return firstClassPrice; }
     public int getSecondClassPrice() { return secondClassPrice; }
 
-    /** Converts "MTWTFSS" to a set like {"MON","TUE","WED",...} */
+    // Converts MTWTFSS to a set like MON,TUE,WED...
     public java.util.Set<String> getDaysSet() {
         java.util.Set<String> result = new java.util.HashSet<>();
         char[] map = {'M','T','W','T','F','S','S'};
@@ -49,7 +49,7 @@ public class Route {
         return result;
     }
 
-    /** Computes trip duration in minutes. Handles overnight trips. */
+    // Computes trip duration in minutes. Handles overnight trips. 
     public int getDurationMinutes() {
         LocalTime dep = LocalTime.parse(departureTime);
         LocalTime arr = LocalTime.parse(arrivalTime);

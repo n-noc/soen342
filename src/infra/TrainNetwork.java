@@ -27,19 +27,19 @@ public class TrainNetwork {
         return Collections.unmodifiableList(allConnections);
     }
 
-    /** return the first route for the pair, or null if none. */
+    // return the first route for the pair, or null if none. 
     public Route getRoute(String departureCity, String arrivalCity) {
         List<Route> list = routesByKey.get(keyFor(departureCity, arrivalCity));
         return (list == null || list.isEmpty()) ? null : list.get(0);
     }
 
-    /** return all routes (trips) for a given city pair. */
+    // return all routes for a given city pair. 
     public List<Route> getRoutes(String departureCity, String arrivalCity) {
         List<Route> list = routesByKey.get(keyFor(departureCity, arrivalCity));
         return (list == null) ? List.of() : Collections.unmodifiableList(list);
     }
 
-    /** Flatten all trips across all pairs. */
+    // get routes for the pair of cities
     public List<Route> getAllRoutes() {
         List<Route> out = new ArrayList<>();
         for (List<Route> list : routesByKey.values()) {
@@ -48,14 +48,14 @@ public class TrainNetwork {
         return out;
     }
 
-    /** Existing: departuring connections (raw connections list). */
+    // departuring connections raw connections list
     public List<TrainConnection> getDeparturesFrom(String city) {
         if (city == null) return List.of();
         String key = city.toLowerCase(Locale.ROOT).trim();
         return byDeparture.getOrDefault(key, List.of());
     }
 
-    /** Routes that depart from a given city (filters the flattened list). */
+    // Routes that depart from a given city filters the flattened list
     
     public List<Route> getRoutesFrom(String city) {
         if (city == null) return List.of();
@@ -75,7 +75,7 @@ public class TrainNetwork {
     }
 
     // Indirect connections 
-   // === Finds all possible city chains (paths) between 'from' and 'to' with up to maxStops transfers ===
+   // Finds all possible paths between 'from' and 'to' with up to maxStops transfers
     public List<List<TrainConnection>> findCityChains(String from, String to, int maxStops) {
         List<List<TrainConnection>> results = new ArrayList<>();
 
@@ -85,7 +85,7 @@ public class TrainNetwork {
         from = from.trim().toLowerCase(Locale.ROOT);
         to = to.trim().toLowerCase(Locale.ROOT);
 
-        // Breadth-First Search (BFS) through the network
+        // BFS through the network
         Queue<List<TrainConnection>> queue = new LinkedList<>();
 
         // Start with all direct departures from the starting city
@@ -107,12 +107,12 @@ public class TrainNetwork {
                 continue;
             }
 
-            // Limit number of stops (transfers)
+            // Limit number of stops 
             if (path.size() > maxStops) continue;
 
             // Explore further connections from the current arrival city
             for (TrainConnection next : getDeparturesFrom(arrival)) {
-                // Avoid cycles (don’t revisit cities already in the path)
+                // Avoid cycles, don’t revisit cities already in the path
                 boolean alreadyVisited = path.stream()
                     .anyMatch(tc -> tc.getDepartureCity().equalsIgnoreCase(next.getArrivalCity()));
                 if (alreadyVisited) continue;
@@ -127,7 +127,7 @@ public class TrainNetwork {
         return results;
     }
 
-    // ---------- Index builders ----------
+    // Index builders
 
     private void rebuildRoutesIndex() {
         routesByKey.clear();
@@ -159,7 +159,7 @@ public class TrainNetwork {
             );
 
             String key = keyFor(tc.getDepartureCity(), tc.getArrivalCity());
-            routesByKey.computeIfAbsent(key, k -> new ArrayList<>()).add(route); // CHANGED: append, don’t overwrite
+            routesByKey.computeIfAbsent(key, k -> new ArrayList<>()).add(route); 
         }
 
         for (Map.Entry<String, List<Route>> e : routesByKey.entrySet()) {

@@ -14,21 +14,21 @@ public class Itinerary {
     private final List<Leg> legs = new ArrayList<>();
 
     // Derived totals 
-    private int totalDurationMinutes;     // sum(legDuration) + sum(transferFromPrev)
-    private int totalTransferMinutes;     // sum(transferFromPrev)
-    private int totalFirstClassPrice;     // sum(route.firstClassPrice)
-    private int totalSecondClassPrice;    // sum(route.secondClassPrice)
+    private int totalDurationMinutes;     
+    private int totalTransferMinutes;     
+    private int totalFirstClassPrice;     
+    private int totalSecondClassPrice;    
 
     //constructors
 
-    /** Empty itinerary; add legs then call recomputeTotals(). */
+    // Empty itinerary; 
     public Itinerary() {}
 
     /** build a direct itinerary from a single route. */
     public static Itinerary fromSingleRoute(Route route) {
         Objects.requireNonNull(route, "route");
         Itinerary it = new Itinerary();
-        it.addLeg(new Leg(route, /*transferFromPrevMinutes=*/0, route.getDurationMinutes()));
+        it.addLeg(new Leg(route, 0, route.getDurationMinutes()));
         it.recomputeTotals();
         return it;
     }
@@ -69,22 +69,22 @@ public class Itinerary {
 
     //helpers
 
-    /** Immutable view of legs (keep class invariant safe). */
+    // immutable view of legs
     public List<Leg> getLegs() {
         return Collections.unmodifiableList(legs);
     }
 
-    /** True if this itinerary has exactly one leg (no transfers). */
+    // treu if itinerary has exactly 1 leg (no transfers)
     public boolean isDirect() {
         return legs.size() == 1;
     }
 
-    /** Number of transfers = legs - 1 (never below 0). */
+    // Number of transfers = legs - 1 (never below 0)
     public int getTransferCount() {
         return Math.max(0, legs.size() - 1);
     }
 
-    /** Convenience: first departure city, or null if empty. */
+    // first departure city, or null if empty
     public String getOriginCity() {
         if (legs.isEmpty()) return null;
         Route first = legs.get(0).getRoute();
@@ -105,7 +105,7 @@ public class Itinerary {
         return first == null ? null : first.getDepartureTime();
     }
 
-    /** Convenience: arrival time of last leg ("HH:mm") or null. */
+    // arrival time of last leg ("HH:mm") or null.
     public String getArrivalTime() {
         if (legs.isEmpty()) return null;
         Route last = legs.get(legs.size() - 1).getRoute();
@@ -150,7 +150,7 @@ public class Itinerary {
           .append(", second€=").append(totalSecondClassPrice)
           .append("}");
 
-        // Optional: expand legs in a second line for debugging
+        // expand legs in a second line for debugging
         if (!legs.isEmpty()) {
             sb.append("\n  Legs:\n");
             for (int i = 0; i < legs.size(); i++) {

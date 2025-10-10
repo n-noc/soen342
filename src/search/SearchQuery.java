@@ -2,9 +2,7 @@ package search;
 
 import java.util.*;
 
-/**
- * Holds all public search parameters (except route-id) for Issue 2.
- */
+
 public class SearchQuery {
     // fields
     private String fromCity;
@@ -59,7 +57,7 @@ public class SearchQuery {
 
     // validate
     public void validate() {
-        if (sortBy == null)  sortBy = "DURATION";   // FIXED
+        if (sortBy == null)  sortBy = "DURATION";   
         if (sortDir == null) sortDir = "ASC";
         if (priceClass == null) priceClass = "ANY";
     
@@ -73,7 +71,7 @@ public class SearchQuery {
         if (!validSortDir.contains(sortDir.toUpperCase()))
             throw new IllegalArgumentException("Invalid sortDir: " + sortDir);
     
-        if (!validPriceCls.contains(priceClass.toUpperCase()))              // FIXED
+        if (!validPriceCls.contains(priceClass.toUpperCase()))             
             throw new IllegalArgumentException("Invalid priceClass: " + priceClass);
     
         String hhmm = "^([01]?\\d|2[0-3]):[0-5]\\d$";
