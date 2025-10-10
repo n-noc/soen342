@@ -22,7 +22,7 @@ public final class RouteFilters {
         return true;
     }
 
-    // dep/arr as "HH:mm" strings → lexicographic compare works
+    // dep/arr as "HH:mm" strings 
     static boolean matchesTimes(SearchQuery q, Route r) {
         String dep = r.getDepartureTime();
         String arr = r.getArrivalTime();

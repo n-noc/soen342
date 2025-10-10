@@ -7,7 +7,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
 
-/** Runs a direct search: pick candidates -> filter -> sort. */
+// Runs a direct search: pick candidates -> filter -> sort 
 public final class SearchService {
     private SearchService() {}
 
