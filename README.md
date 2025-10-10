@@ -12,6 +12,7 @@ All **UML diagrams** for this project are available in the **Wiki** section unde
 
 1. **Open the project** in your IDE or terminal.  
 2. Navigate to the `app` package and run the file:
+3. Make sure to always click option "1" to load the file
 
 
 ## Team members
