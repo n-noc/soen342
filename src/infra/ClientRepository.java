@@ -1,10 +1,11 @@
 package infra;
 
 import domain.Client;
-import java.util.*;
+import java.util.Collection;
 
 public interface ClientRepository {
-    void save(Client c);
+    void save(Client client);
     Client findById(String clientId);
     Collection<Client> findAll();
+    boolean exists(String clientId);
 }

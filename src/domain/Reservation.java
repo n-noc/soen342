@@ -24,7 +24,7 @@ public class Reservation {
         this.ticket = null;
     }
 
-    /** Confirm reservation: verify trip exists, compute price, issue ticket. */
+    // Confirm reservation; verify trip exists, compute price, issue ticket. */
     public void confirm(TripRepository tripRepo) {
         Trip trip = tripRepo.findById(tripId);
         if (trip == null) {
