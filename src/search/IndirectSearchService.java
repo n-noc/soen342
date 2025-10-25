@@ -5,22 +5,23 @@ import domain.Leg;
 import domain.Route;
 import domain.TransferRules;
 import infra.TrainNetwork;
-
 import java.util.*;
 
 // Builds indirect itineraries (0..N transfers) between two cities.
-
 public final class IndirectSearchService {
 
-    private IndirectSearchService() {}
+    private IndirectSearchService() {
+    }
 
     public static List<Itinerary> find(TrainNetwork net,
-                                       SearchQuery q,
-                                       int maxTransfers,
-                                       int maxResults) {
-        String start = safeLower(q.getFromCity());
-        String goal  = safeLower(q.getToCity());
-        if (isBlank(start) || isBlank(goal)) return List.of();
+            SearchQuery q,
+            int maxTransfers,
+            int maxResults) {
+        String start = safeLower(q.getFromCity()); //normalize the city names to lower-case
+        String goal = safeLower(q.getToCity());
+        if (isBlank(start) || isBlank(goal)) {
+            return List.of();
+        }
 
         // qSeed: first leg must depart from q.fromCity, but can arrive anywhere
         SearchQuery qSeed = new SearchQuery(
@@ -56,13 +57,15 @@ public final class IndirectSearchService {
         // queue with first legs from start city 
         Deque<PathState> queue = new ArrayDeque<>();
         for (Route r : net.getRoutesFrom(q.getFromCity())) {
-            if (!RouteFilters.matches(qSeed, r)) continue;
+            if (!RouteFilters.matches(qSeed, r)) {
+                continue;
+            }
 
-            Itinerary it = new Itinerary();
+            Itinerary it = new Itinerary(); //for each acceptable 1st route we make in itinerary w/ 0 prev time
             it.addLeg(new Leg(r, 0, r.getDurationMinutes()));
-            it.recomputeTotals();
+            it.recomputeTotals(); //recompute totals for this leg of itinerary 
 
-            Set<String> visited = new HashSet<>();
+            Set<String> visited = new HashSet<>(); //track visited cities
             visited.add(start);
             visited.add(safeLower(r.getArrivalCity()));
 
@@ -81,7 +84,6 @@ public final class IndirectSearchService {
             // System.out.println("[DBG] Expanding from " + last.getArrivalCity() +
             //         " — " + net.getRoutesFrom(last.getArrivalCity()).size() + " candidates; legs=" +
             //         cur.itinerary.getLegs().size());
-
             // reached destination
             if (goal.equals(atCity)) {
                 cur.itinerary.recomputeTotals();
@@ -93,15 +95,23 @@ public final class IndirectSearchService {
             }
 
             int transfersUsed = cur.itinerary.getLegs().size() - 1;
-            if (transfersUsed >= maxTransfers) continue;
+            if (transfersUsed >= maxTransfers) {
+                continue;
+            }
 
             // expand with subsequent legs 
             for (Route nxt : net.getRoutesFrom(last.getArrivalCity())) {
-                if (!RouteFilters.matches(qLeg, nxt)) continue;
-                if (!TransferRules.isValidConnection(last, nxt)) continue;
+                if (!RouteFilters.matches(qLeg, nxt)) {
+                    continue;
+                }
+                if (!TransferRules.isValidConnection(last, nxt)) {
+                    continue;
+                }
 
                 String nextCity = safeLower(nxt.getArrivalCity());
-                if (cur.visitedCities.contains(nextCity) && !goal.equals(nextCity)) continue;
+                if (cur.visitedCities.contains(nextCity) && !goal.equals(nextCity)) {
+                    continue;
+                }
 
                 int gap = transferGapMinutes(last.getArrivalTime(), nxt.getDepartureTime());
 
@@ -120,10 +130,11 @@ public final class IndirectSearchService {
     }
 
     // helpers
-
     private static class PathState {
+
         final Itinerary itinerary;
         final Set<String> visitedCities;
+
         PathState(Itinerary it, Set<String> visitedCities) {
             this.itinerary = it;
             this.visitedCities = visitedCities;
@@ -136,8 +147,8 @@ public final class IndirectSearchService {
 
     private static Itinerary cloneItinerary(Itinerary src) {
         Itinerary copy = new Itinerary();
-        src.getLegs().forEach(L ->
-                copy.addLeg(new Leg(L.getRoute(), L.getTransferFromPrevMinutes(), L.getLegDurationMinutes()))
+        src.getLegs().forEach(L
+                -> copy.addLeg(new Leg(L.getRoute(), L.getTransferFromPrevMinutes(), L.getLegDurationMinutes()))
         );
         copy.recomputeTotals();
         return copy;
@@ -153,12 +164,12 @@ public final class IndirectSearchService {
                 sb.append(rid);
             } else {
                 sb.append(safeLower(r.getDepartureCity()))
-                  .append(">")
-                  .append(safeLower(r.getArrivalCity()))
-                  .append("@")
-                  .append(r.getDepartureTime())
-                  .append("-")
-                  .append(r.getArrivalTime());
+                        .append(">")
+                        .append(safeLower(r.getArrivalCity()))
+                        .append("@")
+                        .append(r.getDepartureTime())
+                        .append("-")
+                        .append(r.getArrivalTime());
             }
             sb.append("|");
         });

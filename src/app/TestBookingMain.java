@@ -2,9 +2,6 @@ package app;
 
 import domain.*;
 import infra.*;
-import search.*;
-import infra.TrainNetwork;
-
 import java.time.LocalDate;
 import java.util.List;
 
@@ -24,12 +21,14 @@ public class TestBookingMain {
 
         // Example: try to find a real direct route; change cities if needed
         String from = "Paris";
-        String to   = "Amsterdam";
+        String to = "Amsterdam";
         Route r = net.getRoute(from, to);
         if (r == null) {
             // fallback: just pick ANY route departing from Paris so the test always runs
             List<Route> parisRoutes = net.getRoutesFrom("Paris");
-            if (parisRoutes.isEmpty()) throw new IllegalStateException("No routes found from Paris in CSV");
+            if (parisRoutes.isEmpty()) {
+                throw new IllegalStateException("No routes found from Paris in CSV");
+            }
             r = parisRoutes.get(0);
             to = r.getArrivalCity();
             System.out.println("[WARN] No direct Paris→Amsterdam; using Paris→" + to + " instead.");
@@ -59,6 +58,8 @@ public class TestBookingMain {
                 trip.getTripId(),
                 c.getClientId(),
                 "Alice Example",
+                17,
+                "A1",
                 Trip.FareClass.SECOND
         );
         System.out.println("Reservation added (unconfirmed): " + res);

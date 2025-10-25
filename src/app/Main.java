@@ -5,12 +5,11 @@ import domain.ItineraryComparators;
 import domain.Route;
 import domain.TrainConnection;
 import infra.TrainNetwork;
-import search.SearchQuery;
-import search.SearchService;
-import search.IndirectSearchService;
-
 import java.io.IOException;
 import java.util.*;
+import search.IndirectSearchService;
+import search.SearchQuery;
+import search.SearchService;
 
 public class Main {
 
@@ -29,20 +28,27 @@ public class Main {
             choice = getIntInput();
 
             switch (choice) {
-                case 1 -> loadNetwork();
-                case 2 -> viewCitiesAndRoutes();
-                case 3 -> findDeparturesFromCity();
-                case 4 -> lookupDirectRoute();
-                case 5 -> searchRoutesWithFilters();
-                case 6 -> viewIndirectItineraries();
-                case 0 -> System.out.println("Exiting system. Goodbye!");
-                default -> System.out.println("❌ Invalid option. Try again.");
+                case 1 ->
+                    loadNetwork();
+                case 2 ->
+                    viewCitiesAndRoutes();
+                case 3 ->
+                    findDeparturesFromCity();
+                case 4 ->
+                    lookupDirectRoute();
+                case 5 ->
+                    searchRoutesWithFilters();
+                case 6 ->
+                    viewIndirectItineraries();
+                case 0 ->
+                    System.out.println("Exiting system. Goodbye!");
+                default ->
+                    System.out.println("❌ Invalid option. Try again.");
             }
         } while (choice != 0);
     }
 
     // ===== Menu UI =====
-
     private static void showBanner() {
         System.out.println("""
                 ==========================================
@@ -73,7 +79,6 @@ public class Main {
     }
 
     // ===== Actions =====
-
     private static void loadNetwork() {
         System.out.println("Loading train network...");
         try {
@@ -88,17 +93,21 @@ public class Main {
     }
 
     private static void viewCitiesAndRoutes() {
-        if (!ensureDataLoaded()) return;
+        if (!ensureDataLoaded()) {
+            return;
+        }
         System.out.println("\n=== Sample Routes ===");
-        net.getAllRoutes().stream().limit(10).forEach(r ->
-                System.out.printf("  %s → %s  dep %s  arr %s  type %s  dur %d min%n",
+        net.getAllRoutes().stream().limit(10).forEach(r
+                -> System.out.printf("  %s → %s  dep %s  arr %s  type %s  dur %d min%n",
                         r.getDepartureCity(), r.getArrivalCity(),
                         r.getDepartureTime(), r.getArrivalTime(),
                         r.getTrainType(), r.getDurationMinutes()));
     }
 
     private static void findDeparturesFromCity() {
-        if (!ensureDataLoaded()) return;
+        if (!ensureDataLoaded()) {
+            return;
+        }
 
         System.out.print("Enter city name: ");
         String city = sc.nextLine().trim();
@@ -110,15 +119,17 @@ public class Main {
         }
 
         System.out.println("\nDepartures from " + city + ":");
-        list.stream().limit(20).forEach(tc ->
-                System.out.printf("  %s → %s  %s → %s  type %s%n",
+        list.stream().limit(20).forEach(tc
+                -> System.out.printf("  %s → %s  %s → %s  type %s%n",
                         tc.getDepartureCity(), tc.getArrivalCity(),
                         tc.getDepartureTime(), tc.getArrivalTime(),
                         tc.getTraintype()));
     }
 
     private static void lookupDirectRoute() {
-        if (!ensureDataLoaded()) return;
+        if (!ensureDataLoaded()) {
+            return;
+        }
 
         System.out.print("Enter departure city: ");
         String from = sc.nextLine().trim();
@@ -139,14 +150,18 @@ public class Main {
     }
 
     private static void searchRoutesWithFilters() {
-        if (!ensureDataLoaded()) return;
+        if (!ensureDataLoaded()) {
+            return;
+        }
 
         System.out.print("Enter departure city: ");
         String from = sc.nextLine().trim();
 
         System.out.print("Destination city (optional, press Enter for ANY): ");
         String to = sc.nextLine().trim();
-        if (to.isEmpty()) to = null;
+        if (to.isEmpty()) {
+            to = null;
+        }
 
         // Time window
         System.out.print("Earliest departure (HH:mm): ");
@@ -154,12 +169,14 @@ public class Main {
         System.out.print("Latest departure   (HH:mm): ");
         String depEndRaw = sc.nextLine();
         String depStart = normalizeTimeInput(depStartRaw, "00:00");
-        String depEnd   = normalizeTimeInput(depEndRaw,   "23:59");
+        String depEnd = normalizeTimeInput(depEndRaw, "23:59");
 
         // Optional train type
         System.out.print("Train type (optional, EX: TGV/ICE/RE; Enter for ANY): ");
         String trainType = sc.nextLine().trim();
-        if (trainType.isBlank()) trainType = null;
+        if (trainType.isBlank()) {
+            trainType = null;
+        }
 
         // Optional days (comma or space separated, 3-letter codes)
         System.out.print("Days (optional, EX: MON,TUE or MON WED; Enter for ANY): ");
@@ -169,7 +186,9 @@ public class Main {
         // Price filters
         System.out.print("Price class (ANY/FIRST/SECOND) [default ANY]: ");
         String priceClass = sc.nextLine().trim();
-        if (priceClass.isBlank()) priceClass = "ANY";
+        if (priceClass.isBlank()) {
+            priceClass = "ANY";
+        }
         priceClass = priceClass.toUpperCase(Locale.ROOT);
 
         System.out.print("Max price (optional integer, Enter for none): ");
@@ -178,18 +197,22 @@ public class Main {
         // Sort options
         System.out.print("Sort by (DURATION | PRICE_FIRST | PRICE_SECOND) [default DURATION]: ");
         String sortBy = sc.nextLine().trim();
-        if (sortBy.isBlank()) sortBy = "DURATION";
+        if (sortBy.isBlank()) {
+            sortBy = "DURATION";
+        }
         sortBy = sortBy.toUpperCase(Locale.ROOT);
 
         System.out.print("Direction (ASC | DESC) [default ASC]: ");
         String sortDir = sc.nextLine().trim();
-        if (sortDir.isBlank()) sortDir = "ASC";
+        if (sortDir.isBlank()) {
+            sortDir = "ASC";
+        }
         sortDir = sortDir.toUpperCase(Locale.ROOT);
 
         SearchQuery q = new SearchQuery(
                 from, to,
                 depStart, depEnd,
-                null, null,           //UNUSED
+                null, null, //UNUSED
                 trainType,
                 days,
                 priceClass, maxPrice,
@@ -220,7 +243,9 @@ public class Main {
     }
 
     private static void viewIndirectItineraries() {
-        if (!ensureDataLoaded()) return;
+        if (!ensureDataLoaded()) {
+            return;
+        }
 
         System.out.print("Enter departure city: ");
         String from = sc.nextLine().trim();
@@ -231,7 +256,7 @@ public class Main {
         System.out.print("Earliest departure for first leg (HH:mm) [default 00:00]: ");
         String depStart = normalizeTimeInput(sc.nextLine(), "00:00");
         System.out.print("Latest departure for first leg (HH:mm) [default 23:59]: ");
-        String depEnd   = normalizeTimeInput(sc.nextLine(), "23:59");
+        String depEnd = normalizeTimeInput(sc.nextLine(), "23:59");
 
         SearchQuery q = new SearchQuery(
                 from, to,
@@ -265,17 +290,25 @@ public class Main {
         System.out.print("Sort by (DURATION | TRANSFERS | PRICE_FIRST | PRICE_SECOND | ARRIVAL) [default DURATION]: ");
         String sortKey = sc.nextLine().trim().toUpperCase(Locale.ROOT);
         Comparator<Itinerary> cmp = switch (sortKey) {
-            case "TRANSFERS"    -> ItineraryComparators.BY_TRANSFERS;
-            case "PRICE_FIRST"  -> ItineraryComparators.BY_FIRST_CLASS_PRICE;
-            case "PRICE_SECOND" -> ItineraryComparators.BY_SECOND_CLASS_PRICE;
-            case "ARRIVAL"      -> ItineraryComparators.BY_ARRIVAL_TIME;
-            default             -> ItineraryComparators.BY_TOTAL_DURATION;
+            case "TRANSFERS" ->
+                ItineraryComparators.BY_TRANSFERS;
+            case "PRICE_FIRST" ->
+                ItineraryComparators.BY_FIRST_CLASS_PRICE;
+            case "PRICE_SECOND" ->
+                ItineraryComparators.BY_SECOND_CLASS_PRICE;
+            case "ARRIVAL" ->
+                ItineraryComparators.BY_ARRIVAL_TIME;
+            default ->
+                ItineraryComparators.BY_TOTAL_DURATION;
         };
 
         System.out.print("Direction (ASC | DESC) [default ASC]: ");
         String dir = sc.nextLine().trim().toUpperCase(Locale.ROOT);
-        if ("DESC".equals(dir)) itins = itins.stream().sorted(cmp.reversed()).toList();
-        else                    itins = itins.stream().sorted(cmp).toList();
+        if ("DESC".equals(dir)) {
+            itins = itins.stream().sorted(cmp.reversed()).toList(); 
+        }else {
+            itins = itins.stream().sorted(cmp).toList();
+        }
 
         int i = 1;
         for (Itinerary it : itins) {
@@ -285,7 +318,6 @@ public class Main {
     }
 
     // utility methods
-
     private static boolean ensureDataLoaded() {
         if (!dataLoaded) {
             System.out.println("⚠️ Please load the network data first (Option 1).");
@@ -295,12 +327,17 @@ public class Main {
     }
 
     private static int getIntInput() {
-        try { return Integer.parseInt(sc.nextLine().trim()); }
-        catch (NumberFormatException e) { return -1; }
+        try {
+            return Integer.parseInt(sc.nextLine().trim());
+        } catch (NumberFormatException e) {
+            return -1;
+        }
     }
 
     private static String normalizeTimeInput(String s, String fallback) {
-        if (s == null || s.isBlank()) return fallback;
+        if (s == null || s.isBlank()) {
+            return fallback;
+        }
         s = s.trim();
 
         // 8  -> 08:00
@@ -322,19 +359,25 @@ public class Main {
             return String.format("%02d:%02d", h, m);
         }
         // already HH:mm
-        if (s.matches("\\d{2}:\\d{2}")) return s;
+        if (s.matches("\\d{2}:\\d{2}")) {
+            return s;
+        }
 
         return fallback;
     }
 
     private static Set<String> parseDays(String raw) {
-        if (raw == null || raw.isBlank()) return null; // ANY
-        String[] tokens = raw.replace(',', ' ').trim().split("\\s+");
+        if (raw == null || raw.isBlank()) {
+            return null; // ANY
+
+                }String[] tokens = raw.replace(',', ' ').trim().split("\\s+");
         Set<String> out = new HashSet<>();
         for (String t : tokens) {
             String d = t.trim().toUpperCase(Locale.ROOT);
-            if (d.length() >= 3) d = d.substring(0, 3);
-            if (List.of("MON","TUE","WED","THU","FRI","SAT","SUN").contains(d)) {
+            if (d.length() >= 3) {
+                d = d.substring(0, 3);
+            }
+            if (List.of("MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN").contains(d)) {
                 out.add(d);
             }
         }
@@ -342,8 +385,13 @@ public class Main {
     }
 
     private static Integer parseOptionalInt(String s) {
-        if (s == null || s.isBlank()) return null;
-        try { return Integer.valueOf(s.trim()); }
-        catch (NumberFormatException e) { return null; }
+        if (s == null || s.isBlank()) {
+            return null;
+        }
+        try {
+            return Integer.valueOf(s.trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 }
