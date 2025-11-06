@@ -1,7 +1,7 @@
 
 -- table of clients
 CREATE TABLE IF NOT EXISTS clients(
-    client_id TeXT PRIMARY KEY,
+    client_id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     email TEXT NOT NULL,
     phone TEXT
@@ -10,14 +10,14 @@ CREATE TABLE IF NOT EXISTS clients(
 -- table of trips 
 CREATE TABLE IF NOT EXISTS trips(
     trip_id TEXT PRIMARY KEY,
-    cleint_id TEXT NOT NULL,    --foreign key
+    client_id TEXT NOT NULL,    --foreign key
     trip_date TEXT NOT NULL,    -- ISO yyyy-mm-dd
     fare_class TEXT NOT NULL.   --FIRST or SECOND
     passenger_count INT NOT NULL,
     status TEXT NOT NULL,  --BOOKED, CANCELLED, COMPLETED
     orign_city TEXT NOT NULL,
     destination_city TEXT NOT NULL,
-    toal_minutes INT,
+    total_minutes INT,
     first_total_euro INT,
     second_total_euro INT,
     FOREIGN KEY (client_id) REFERENCES clients(client_id) ON DELETE CASCADE
