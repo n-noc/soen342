@@ -27,6 +27,22 @@ public class Route {
         this.secondClassPrice = secondClassPrice;
     }
 
+    // convenience constructor used when loading routes from DB (no routeId/daysOfOperation)
+    public Route(String departureCity, String arrivalCity,
+        String departureTime, String arrivalTime,
+        String trainType, int durationMin,
+        int firstClassPrice, int secondClassPrice) {
+        this.routeId = java.util.UUID.randomUUID().toString();
+        this.departureCity = departureCity;
+        this.arrivalCity = arrivalCity;
+        this.departureTime = departureTime;
+        this.arrivalTime = arrivalTime;
+        this.trainType = trainType;
+        this.daysOfOperation = "MTWTFSS"; // default
+        this.firstClassPrice = firstClassPrice;
+        this.secondClassPrice = secondClassPrice;
+    }
+
     // -------- Getters --------
     public String getRouteId() { return routeId; }
     public String getDepartureCity() { return departureCity; }

@@ -6,18 +6,21 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
 import search.*;
+import infra.RepositoryFactory.Mode;
 
 public class AppCLI {
 
     private static final Scanner sc = new Scanner(System.in);
 
-    private static final ClientRepository clientRepo = new InMemoryClientRepository();
-    private static final TripRepository tripRepo = new InMemoryTripRepository();
-    private static final ReservationRepository reservationRepo = new InMemoryReservationRepository();
-    private static final TicketRepository ticketRepo = new InMemoryTicketRepository();
-    private static final BookingService booking = new BookingService(
-            clientRepo, tripRepo, reservationRepo, ticketRepo
-    );
+    // old repos
+
+    // private static final ClientRepository clientRepo = new InMemoryClientRepository();
+    // private static final TripRepository tripRepo = new InMemoryTripRepository();
+    // private static final ReservationRepository reservationRepo = new InMemoryReservationRepository();
+    // private static final TicketRepository ticketRepo = new InMemoryTicketRepository();
+    // private static final BookingService booking = new BookingService(
+    //         clientRepo, tripRepo, reservationRepo, ticketRepo
+    // );
 
     private static final TrainNetwork net = new TrainNetwork();
     private static boolean dataLoaded = false;
@@ -27,6 +30,22 @@ public class AppCLI {
     private static Trip lastTrip = null;
     private static Reservation lastReservation = null;
     private static Ticket lastTicket = null;
+
+    // connect to db
+    private static final Mode MODE=Mode.SQLITE;
+    private static final ClientRepository clientRepo       = RepositoryFactory.clients(MODE);
+    private static final TripRepository tripRepo           = RepositoryFactory.trips(MODE);
+    private static final ReservationRepository reservationRepo = RepositoryFactory.reservations(MODE);
+    private static final TicketRepository ticketRepo       = RepositoryFactory.tickets(MODE);
+    
+    // application service
+    private static final BookingService booking            =
+        new BookingService(clientRepo, tripRepo, reservationRepo, ticketRepo);
+
+    // ensure db schema exists
+    static {
+        RepositoryFactory.ensureSchema(MODE); // creates tables if needed
+    }
 
     public static void main(String[] args) {
         System.out.println("""
