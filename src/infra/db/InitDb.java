@@ -91,6 +91,25 @@ public final class InitDb {
                 );
             """);
 
+            // --- Persisted legs for each Trip (to rebuild Itinerary) ---
+            stmt.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS TripLeg (
+                    tripId           TEXT NOT NULL,
+                    legIndex         INTEGER NOT NULL,
+                    depCity          TEXT NOT NULL,
+                    arrCity          TEXT NOT NULL,
+                    depTime          TEXT NOT NULL,  -- HH:mm (matches Route)
+                    arrTime          TEXT NOT NULL,  -- HH:mm (matches Route)
+                    trainType        TEXT NOT NULL,
+                    durationMin      INTEGER NOT NULL,
+                    priceFirst       INTEGER NOT NULL,
+                    priceSecond      INTEGER NOT NULL,
+                    transferFromPrev INTEGER NOT NULL DEFAULT 0,
+                    PRIMARY KEY (tripId, legIndex),
+                    FOREIGN KEY (tripId) REFERENCES Trip(tripId)
+                );
+            """);
+
             System.out.println("Tables created (if not existing).");
 
         } catch (Exception e) {

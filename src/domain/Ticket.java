@@ -24,6 +24,25 @@ public class Ticket {
         this.issuedAt = Instant.now();
     }
 
+    // constructor for the repo
+    // domain/Ticket.java (add this constructor)
+    public Ticket(String ticketId,
+        String reservationId,
+        String tripId,
+        String clientId,
+        String passengerName,
+        Trip.FareClass fareClass,
+        int totalPriceCents,
+        String issuedAtIso) {
+        this.ticketId = ticketId;
+        this.reservationId = reservationId;
+        this.tripId = tripId;
+        this.clientId = clientId;
+        this.passengerName = passengerName;
+        this.fareClass = fareClass;
+        this.totalPriceCents = totalPriceCents;
+        this.issuedAt = java.time.Instant.parse(issuedAtIso);
+    }
     public String getTicketId() { return ticketId; }
     public String getReservationId() { return reservationId; }
     public String getTripId() { return tripId; }
@@ -38,4 +57,6 @@ public class Ticket {
         return "Ticket{id=%s, res=%s, trip=%s, client=%s, name=%s, class=%s, total=%d, issued=%s}"
                 .formatted(ticketId, reservationId, tripId, clientId, passengerName, fareClass, totalPriceCents, issuedAt);
     }
+
+
 }

@@ -29,6 +29,21 @@ public class Reservation {
         this.ticket = null;
     }
 
+    // constructor for the sql repo
+   public Reservation(String reservationId, String tripId, String clientId, String passengerName,
+                        int passengerAge, String passengerIdNumber, Trip.FareClass fareClass, boolean confirmed) {
+        this.reservationId = reservationId; 
+        this.tripId = tripId;
+        this.clientId = clientId;
+        this.passengerName = passengerName;
+        this.passengerAge = passengerAge;
+        this.passengerIdNumber = passengerIdNumber;
+        this.fareClass = fareClass;
+        this.confirmed = confirmed;
+        this.ticket = null;  // default, since the repo doesn’t auto-load tickets
+    }
+
+
     // Confirm reservation; verify trip exists, compute price, issue ticket. */
     public void confirm(TripRepository tripRepo) {
         Trip trip = tripRepo.findById(tripId);
@@ -83,4 +98,12 @@ public class Reservation {
         return "Reservation{id=%s, client=%s, trip=%s, name=%s, age=%d, id=%s, class=%s, confirmed=%s}"
                 .formatted(reservationId, clientId, tripId, passengerName, passengerAge, passengerIdNumber, fareClass, confirmed);
     }
+
+    public void setConfirmed(boolean confirmed) {
+        this.confirmed = confirmed;
+    }
+
+    public void setTicket(Ticket ticket) {
+        this.ticket = ticket;
+    }   
 }

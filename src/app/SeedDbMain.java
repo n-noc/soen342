@@ -1,3 +1,6 @@
+// test the DB
+
+
 package app;
 
 import infra.db.DbSeeder;

@@ -53,6 +53,23 @@ CREATE TABLE IF NOT EXISTS tickets(
     FOREIGN KEY (trip_id) REFERENCES trips(trip_id) ON DELETE CASCADE
 );
 
+-- table with trip legs to make itineraries
+CREATE TABLE IF NOT EXISTS TripLeg(
+    trip_id TEXT NOT NULL,
+    legIndex INT NOT NULL,
+    depCity TEXT NOT NULL,
+    arrCity TEXT NOT NULL,
+    depTime TEXT NOT NULL,  -- ISO yyyy-mm-ddThh:mm
+    arrTime TEXT NOT NULL,  -- ISO yyyy-mm-ddThh:mm
+    trainType TEXT NOT NULL,
+    durationMin INT NOT NULL,
+    priceFirst INT NOT NULL,
+    priceSecond INT NOT NULL,
+    transferFromPrev INT NOT NULL DEFAULT 0,  -- 0 or 1
+    PRIMARY KEY (trip_id, legIndex),
+    FOREIGN KEY (trip_id) REFERENCES trips(trip_id)
+);
+
 CREATE INDEX IF NOT EXISTS idx_trips_client ON trips(client_id);
 CREATE INDEX IF NOT EXISTS idx_reservations_trip ON reservations(trip_id);
 CREATE INDEX IF NOT EXISTS idx_tickets_trip ON tickets(trip_id);
