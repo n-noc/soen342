@@ -70,7 +70,7 @@ public class AppCLI {
                     confirmAllUnconfirmedReservations();
                 case "5" ->
                     showSessionSummary();
-                case "6" ->{
+                case "6" -> {
                     viewTripsForClient();
                 }
                 case "0" -> {
@@ -197,6 +197,7 @@ public class AppCLI {
         }
 
         System.out.println("Found " + list.size() + " itineraries:");
+        System.out.println("NOTE Layover policy: daytime layovers ≤ 2h, night-time ≤ 30 min.");
         for (int i = 0; i < list.size(); i++) {
             System.out.print(i + 1 + ".");
             System.out.println(list.get(i));
@@ -513,92 +514,91 @@ public class AppCLI {
                 + it.getTotalDurationMinutes() + " min)";
     }
 
-
     // option 6: view all trips for a client
-private static void viewTripsForClient() {
-    System.out.println("Currently viewing trips for a client.");
-    System.out.print("Enter client ID, or leave blank to use current client: ");
-    String id = sc.nextLine().trim();
+    private static void viewTripsForClient() {
+        System.out.println("Currently viewing trips for a client.");
+        System.out.print("Enter client ID, or leave blank to use current client: ");
+        String id = sc.nextLine().trim();
 
-    //find client
-    Client client = null;
-    if (id.isBlank()) {
-        if (currentClient == null) {
-            System.out.println("No active client. Use option 2 first or enter a client ID.");
-            return;
-        }
-        client = currentClient;
-    } else {
-        client = clientRepo.findById(id); // <-- use the entered id
-        if (client == null) {
-            System.out.println("Client not found: " + id);
-            return;
-        }
-    }
-
-    // Fetch trips for this client
-    Collection<Trip> trips = tripRepo.findByClientId(client.getClientId());
-    if (trips == null || trips.isEmpty()) {
-        System.out.println("There were no trips found for " + client.getName());
-        return;
-    }
-
-    System.out.println("Trips for client " + client.getName());
-    int idx = 1;
-    for (Trip t : trips) {
-        Itinerary it = t.getItinerary();
-        int legs = it.getLegs().size();
-        int transfers = Math.max(0, legs - 1);
-        int durationMin = it.getTotalDurationMinutes();
-
-        // Reservations for this trip
-        Collection<Reservation> resv = reservationRepo.findByTripId(t.getTripId());
-
-        // Tickets for this trip
-        Collection<Ticket> allTickets = ticketRepo.findAll();
-        List<Ticket> tripTickets = allTickets.stream()
-                .filter(k -> t.getTripId().equals(k.getTripId()))
-                .toList();
-
-        // Header
-        System.out.println("\n--------------------------------------------------");
-        System.out.println("#" + (idx++) + "  Trip " + t.getTripId());
-        System.out.println("Date         : " + t.getTripDate());
-        System.out.println("Status       : " + t.getStatus());
-        System.out.println("Fare class   : " + t.getFareClass());
-        System.out.println("Passengers   : " + t.getPassengerCount());
-
-        // Route summary
-        String origin = legs == 0 ? "?" : it.getLegs().get(0).getRoute().getDepartureCity();
-        String dest   = legs == 0 ? "?" : it.getLegs().get(legs - 1).getRoute().getArrivalCity();
-        System.out.println("Route        : " + origin + " → " + dest + "  (" + legs + " legs)");
-
-        // Totals
-        System.out.println("Totals       : duration " + durationMin + " min, transfers " + transfers
-                + ", total price €" + t.totalPrice());
-
-        // Reservations list
-        System.out.println("Reservations : " + (resv == null ? 0 : resv.size()));
-        if (resv != null && !resv.isEmpty()) {
-            for (Reservation r : resv) {
-                System.out.println("  - " + r.getPassengerName()
-                        + " (age " + r.getPassengerAge()
-                        + ", id " + r.getPassengerIdNumber()
-                        + ", class " + r.getFareClass()
-                        + ", confirmed=" + r.isConfirmed() + ")");
+        //find client
+        Client client = null;
+        if (id.isBlank()) {
+            if (currentClient == null) {
+                System.out.println("No active client. Use option 2 first or enter a client ID.");
+                return;
+            }
+            client = currentClient;
+        } else {
+            client = clientRepo.findById(id); // <-- use the entered id
+            if (client == null) {
+                System.out.println("Client not found: " + id);
+                return;
             }
         }
 
-        // Tickets list
-        System.out.println("Tickets      : " + (tripTickets == null ? 0 : tripTickets.size()));
-        if (tripTickets != null && !tripTickets.isEmpty()) {
-            for (Ticket tk : tripTickets) {
-                System.out.println("  - " + tk.getPassengerName()
-                        + " (" + tk.getFareClass()
-                        + ", total €" + tk.getTotalPriceCents()
-                        + ", issued " + tk.getIssuedAt() + ")");
+        // Fetch trips for this client
+        Collection<Trip> trips = tripRepo.findByClientId(client.getClientId());
+        if (trips == null || trips.isEmpty()) {
+            System.out.println("There were no trips found for " + client.getName());
+            return;
+        }
+
+        System.out.println("Trips for client " + client.getName());
+        int idx = 1;
+        for (Trip t : trips) {
+            Itinerary it = t.getItinerary();
+            int legs = it.getLegs().size();
+            int transfers = Math.max(0, legs - 1);
+            int durationMin = it.getTotalDurationMinutes();
+
+            // Reservations for this trip
+            Collection<Reservation> resv = reservationRepo.findByTripId(t.getTripId());
+
+            // Tickets for this trip
+            Collection<Ticket> allTickets = ticketRepo.findAll();
+            List<Ticket> tripTickets = allTickets.stream()
+                    .filter(k -> t.getTripId().equals(k.getTripId()))
+                    .toList();
+
+            // Header
+            System.out.println("\n--------------------------------------------------");
+            System.out.println("#" + (idx++) + "  Trip " + t.getTripId());
+            System.out.println("Date         : " + t.getTripDate());
+            System.out.println("Status       : " + t.getStatus());
+            System.out.println("Fare class   : " + t.getFareClass());
+            System.out.println("Passengers   : " + t.getPassengerCount());
+
+            // Route summary
+            String origin = legs == 0 ? "?" : it.getLegs().get(0).getRoute().getDepartureCity();
+            String dest = legs == 0 ? "?" : it.getLegs().get(legs - 1).getRoute().getArrivalCity();
+            System.out.println("Route        : " + origin + " → " + dest + "  (" + legs + " legs)");
+
+            // Totals
+            System.out.println("Totals       : duration " + durationMin + " min, transfers " + transfers
+                    + ", total price €" + t.totalPrice());
+
+            // Reservations list
+            System.out.println("Reservations : " + (resv == null ? 0 : resv.size()));
+            if (resv != null && !resv.isEmpty()) {
+                for (Reservation r : resv) {
+                    System.out.println("  - " + r.getPassengerName()
+                            + " (age " + r.getPassengerAge()
+                            + ", id " + r.getPassengerIdNumber()
+                            + ", class " + r.getFareClass()
+                            + ", confirmed=" + r.isConfirmed() + ")");
+                }
+            }
+
+            // Tickets list
+            System.out.println("Tickets      : " + (tripTickets == null ? 0 : tripTickets.size()));
+            if (tripTickets != null && !tripTickets.isEmpty()) {
+                for (Ticket tk : tripTickets) {
+                    System.out.println("  - " + tk.getPassengerName()
+                            + " (" + tk.getFareClass()
+                            + ", total €" + tk.getTotalPriceCents()
+                            + ", issued " + tk.getIssuedAt() + ")");
+                }
             }
         }
     }
-}
 }

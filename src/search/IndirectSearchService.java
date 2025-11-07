@@ -1,9 +1,9 @@
 package search;
 
+import domain.BookingPolicies;
 import domain.Itinerary;
 import domain.Leg;
 import domain.Route;
-import domain.TransferRules;
 import infra.TrainNetwork;
 import java.util.*;
 
@@ -21,6 +21,18 @@ public final class IndirectSearchService {
         String goal = safeLower(q.getToCity());
         if (isBlank(start) || isBlank(goal)) {
             return List.of();
+        }
+
+        Integer directDurationMinutes = null;
+        try {
+            Route direct = net.getRoute(q.getFromCity(), q.getToCity());
+            if (direct != null) {
+                directDurationMinutes = direct.getDurationMinutes();
+            } else {
+                directDurationMinutes = Integer.MAX_VALUE; //no direct route
+            }
+        } catch (Exception e) {
+            directDurationMinutes = Integer.MAX_VALUE;
         }
 
         // qSeed: first leg must depart from q.fromCity, but can arrive anywhere
@@ -87,6 +99,12 @@ public final class IndirectSearchService {
             // reached destination
             if (goal.equals(atCity)) {
                 cur.itinerary.recomputeTotals();
+
+                //too much slower than a direct route
+                if (!BookingPolicies.isOkComparedToDirect(cur.itinerary, directDurationMinutes)) {
+                    //it gets skipped
+                    continue;
+                }
                 String key = itineraryKey(cur.itinerary);
                 if (seenKeys.add(key)) {
                     results.add(cur.itinerary);
@@ -104,10 +122,10 @@ public final class IndirectSearchService {
                 if (!RouteFilters.matches(qLeg, nxt)) {
                     continue;
                 }
-                if (!TransferRules.isValidConnection(last, nxt)) {
-                    continue;
-                }
 
+                if (!BookingPolicies.isLayoverAllowed(last, nxt)) {
+                    continue; //if not allowed then this Route will be skipped since it has a layover time that is way too long
+                }
                 String nextCity = safeLower(nxt.getArrivalCity());
                 if (cur.visitedCities.contains(nextCity) && !goal.equals(nextCity)) {
                     continue;
