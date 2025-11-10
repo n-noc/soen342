@@ -33,7 +33,7 @@ If there is a direct train between A and B, then an indirect itinerary is only a
 
 ## Instructions 
 
-To run the app, use APPCLI.java which is the updated version of Main.java which was hardcoded for small testing. 
+To run the app, use AppCLI.java which is the updated version of Main.java which was hardcoded for small testing. 
 
 Run the following commands:
 
