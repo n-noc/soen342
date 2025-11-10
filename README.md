@@ -30,3 +30,24 @@ Itenraries with layovers longer than 2h after 22:00 till 6:00 are not suggested 
 2. Too slow and unreasonable comparet to direct:
 
 If there is a direct train between A and B, then an indirect itinerary is only allowed/suggested if its total travel time is at most 3 hours longer than the best direct option.
+
+## Instructions 
+
+To run the app, use APPCLI.java which is the updated version of Main.java which was hardcoded for small testing. 
+
+Run the following commands:
+
+1.
+
+```java
+   javac -cp "lib/*:src" -d out $(find src -name "*.java")
+```
+2.  
+
+```java
+   java -cp "out:lib/*" app.SeedDbMain
+```
+3. 
+```java
+   java -cp "out:lib/*" app.AppCLI
+```
